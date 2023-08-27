@@ -4,6 +4,11 @@ import numpy as np
 from PIL import Image, ImageSequence
 
 
+def validate_args(args):
+    if args["npc_simulation"]:
+        raise Exception("ERROR: Integrated npc simulation not yet implemented.")
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(
         prog="HS-AFM-Simulation",
@@ -16,58 +21,72 @@ def parse_arguments():
                         action=argparse.BooleanOptionalAction,
                         help="In the case of --npc-simulation flag, the npc simulations run 'live'. In the case of "
                              "--no-npc-simulation flag, the program uses files in the folder specified with "
-                             "--existing_files_path")
+                             "--existing_files_path",
+                        required=True)
     parser.add_argument("--existing-files-path",
                         type=str,
                         help="Path to the folder containing hdf5 density map files, to be used in the case of "
                              "--no-npc-simulation flag. Files should be named <delta_time_in_ns>.pb.hdf5")
     parser.add_argument("--simulation-time-ns",
                         type=int,
-                        help="How long the simulation runs, in nanoseconds.")
+                        help="How long the simulation runs, in nanoseconds.",
+                        required=True)
     parser.add_argument("--interval-ns",
                         type=int,
-                        help="Interval between calculation of the AFM map, in nanoseconds.")
+                        help="Interval between calculation of the AFM map, in nanoseconds.",
+                        required=True)
     # ========================= #
     # AFM PARAMETERS #
     # ========================= #
     parser.add_argument("--min-x-coord",
                         type=int,
                         help="Specifies the first pixel on the X axis on which the simulation is ran (inclusive). "
-                             "Count starting from 0.")
+                             "Count starting from 0.",
+                        required=True)
     parser.add_argument("--max-x-coord",
                         type=int,
                         help="Specifies the last pixel on the X axis on which the simulation is ran (not inclusive). "
-                             "Count starting from 0.")
+                             "Count starting from 0.",
+                        required=True)
     parser.add_argument("--min-y-coord",
                         type=int,
                         help="Specifies the first pixel on the Y axis on which the simulation is ran (inclusive). "
-                             "Count starting from 0.")
+                             "Count starting from 0.",
+                        required=True)
     parser.add_argument("--max-y-coord",
                         type=int,
                         help="Specifies the last pixel on the Y axis on which the simulation is ran (not inclusive). "
-                             "Count starting from 0.")
+                             "Count starting from 0.",
+                        required=True)
     parser.add_argument("--min-z-coord",
                         type=int,
                         help="Specifies the first pixel on the Z axis on which the simulation is ran (inclusive). "
-                             "Count starting from 0.")
+                             "Count starting from 0.",
+                        required=True)
     parser.add_argument("--max-z-coord",
                         type=int,
                         help="Specifies the last pixel on the Z axis on which the simulation is ran (not inclusive). "
-                             "Count starting from 0.")
+                             "Count starting from 0.",
+                        required=True)
 
     # ================= #
     # OUTPUT PARAMETERS #
     # ================= #
     parser.add_argument("--output-path",
                         type=str,
-                        help="Path to output gif file.")
+                        help="Path to output gif file.",
+                        required=True)
     parser.add_argument("--output_resolution_x",
                         type=int,
-                        help="x axis Resolution of output gif in pixels.")
+                        help="x axis Resolution of output gif in pixels.",
+                        required=True)
     parser.add_argument("--output_resolution_y",
                         type=int,
-                        help="y axis Resolution of output gif in pixels.")
-    return vars(parser.parse_args())
+                        help="y axis Resolution of output gif in pixels.",
+                        required=True)
+    args = vars(parser.parse_args())
+    validate_args(args)
+    return args
 
 
 def get_combined_density_map(time, args):
@@ -103,8 +122,6 @@ def get_height_map(combined_density_map):
 def main():
     args = parse_arguments()
     print(args)
-    if args["npc_simulation"]:
-        raise Exception("ERROR: Integrated npc simulation not yet implemented.")
     images = []
     for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
         combined_density_map = get_combined_density_map(i, args)

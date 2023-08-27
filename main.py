@@ -109,11 +109,9 @@ def main():
     for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
         combined_density_map = get_combined_density_map(i, args)
         height_map = get_height_map(combined_density_map)
-        im = Image.fromarray((height_map * 255).astype(np.uint8))
-        im = im.resize((600, 600), resample=Image.BOX)
-        im.save(f"{i}.png")
+        im = Image.fromarray((height_map * 255).astype(np.uint8)).resize(
+            (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
         images.append(im)
-
     images[0].save(args["output_path"], append_images=images[1:], save_all=True, duration=100, loop=0)
 
 

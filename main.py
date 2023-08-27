@@ -27,22 +27,34 @@ def parse_arguments():
     parser.add_argument("--interval-ns",
                         type=int,
                         help="Interval between calculation of the AFM map, in nanoseconds.")
+    # ========================= #
+    # AFM PARAMETERS #
+    # ========================= #
+    parser.add_argument("--min-x-coord",
+                        type=int,
+                        help="Specifies the first pixel on the X axis on which the simulation is ran (inclusive). "
+                             "Count starting from 0.")
+    parser.add_argument("--max-x-coord",
+                        type=int,
+                        help="Specifies the last pixel on the X axis on which the simulation is ran (not inclusive). "
+                             "Count starting from 0.")
+    parser.add_argument("--min-y-coord",
+                        type=int,
+                        help="Specifies the first pixel on the Y axis on which the simulation is ran (inclusive). "
+                             "Count starting from 0.")
+    parser.add_argument("--max-y-coord",
+                        type=int,
+                        help="Specifies the last pixel on the Y axis on which the simulation is ran (not inclusive). "
+                             "Count starting from 0.")
+    parser.add_argument("--min-z-coord",
+                        type=int,
+                        help="Specifies the first pixel on the Z axis on which the simulation is ran (inclusive). "
+                             "Count starting from 0.")
+    parser.add_argument("--max-z-coord",
+                        type=int,
+                        help="Specifies the last pixel on the Z axis on which the simulation is ran (not inclusive). "
+                             "Count starting from 0.")
 
-    # parser.add_argument("--afm-image-resolution",
-    #                     type=int,
-    #                     help="Resolution of simulated AFM image. A single int. i.e. if 80 was provided and "
-    #                          "--afm_dimension is 2 then the resolution will be 80x80")
-    parser.add_argument("--afm-dimension",
-                        type=int,
-                        choices=[1, 2])
-    parser.add_argument("--x-coord",
-                        type=int,
-                        help="To be used with --afm_dimension=1. Specifies the pixel on the X axis on which the "
-                             "simulation is ran. Mutually exclusive with --y_coord")
-    parser.add_argument("--y-coord",
-                        type=int,
-                        help="To be used with --afm_dimension=1. Specifies the pixel on the Y axis on which the "
-                             "simulation is ran. Mutually exclusive with --x_coord")
     # ================= #
     # OUTPUT PARAMETERS #
     # ================= #
@@ -58,13 +70,17 @@ def parse_arguments():
     return vars(parser.parse_args())
 
 
-def get_combined_density_map(time, existing_files_path, afm_image_resolution):
-    combined_density_map = np.zeros(
-        shape=(afm_image_resolution, afm_image_resolution, afm_image_resolution))
-    with h5py.File(f"{existing_files_path}/{time}.pb.hdf5", "r") as f:
+def get_combined_density_map(time, args):
+    x_size = args["max_x_coord"] - args["min_x_coord"]
+    y_size = args["max_y_coord"] - args["min_y_coord"]
+    z_size = args["max_z_coord"] - args["min_z_coord"]
+    combined_density_map = np.zeros(shape=(x_size, y_size, z_size))
+    with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
         data = f["floater_xyz_hist"]
         for key in data.keys():
-            combined_density_map += np.array(data[key])
+            combined_density_map += np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
+                                    args["min_y_coord"]:args["max_y_coord"],
+                                    args["min_z_coord"]:args["max_z_coord"]]
     return combined_density_map
 
 
@@ -91,7 +107,7 @@ def main():
         raise Exception("ERROR: Integrated npc simulation not yet implemented.")
     images = []
     for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
-        combined_density_map = get_combined_density_map(i, args["existing_files_path"], args["afm_image_resolution"])
+        combined_density_map = get_combined_density_map(i, args)
         height_map = get_height_map(combined_density_map)
         im = Image.fromarray((height_map * 255).astype(np.uint8))
         im = im.resize((600, 600), resample=Image.BOX)

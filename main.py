@@ -6,7 +6,7 @@ from PIL import Image, ImageSequence
 """
 todo:
 1. Add hdf5 output option.
-2. Single pixel height as average of box, with threshold. How to handle sides?
+2. Single pixel height as average of box.
 """
 
 
@@ -76,30 +76,43 @@ def parse_arguments():
                              "Count starting from 0.",
                         required=True)
     parser.add_argument("--needle-threshold",
-                        type=int,
+                        type=float,
                         help="The density under which the needle ignores.",
                         required=True)
     parser.add_argument("--needle-radius-px",
                         type=int,
                         help="Determines how far around the origin pixel the needle considers for determining pixel "
-                             "height. (Assuming ball shape).",
+                             "height. (Assuming ball shape). Should be greater than 1.",
                         required=True)
 
     # ================= #
     # OUTPUT PARAMETERS #
     # ================= #
-    parser.add_argument("--output-path",
+    parser.add_argument('--output-gif',
+                        action=argparse.BooleanOptionalAction,
+                        help="Outputs a gif if '--output-gif', doesn't if --no-output-gif",
+                        required=True)
+    parser.add_argument("--output-gif-path",
                         type=str,
                         help="Path to output gif file.",
                         required=True)
     parser.add_argument("--output_resolution_x",
                         type=int,
-                        help="x axis Resolution of output gif in pixels.",
+                        help="x axis Resolution of output gif in pixels. (Up-scaled from original height maps size)",
                         required=True)
     parser.add_argument("--output_resolution_y",
                         type=int,
-                        help="y axis Resolution of output gif in pixels.",
+                        help="y axis Resolution of output gif in pixels. (Up-scaled from original height maps size)",
                         required=True)
+    parser.add_argument('--output-hdf5',
+                        action=argparse.BooleanOptionalAction,
+                        help="Outputs a hdf5 file if '--output-hdf5', doesn't if --no-output-hdf5",
+                        required=True)
+    parser.add_argument("--output-hdf5-path",
+                        type=str,
+                        help="Path to output hdf5 file.",
+                        required=True)
+
     args = vars(parser.parse_args())
     validate_args(args)
     return args
@@ -120,7 +133,7 @@ def get_combined_density_map(time, args):
 
 
 def ball_average(x, y, z, arr, r):
-    # Written by AI
+    # function written by AI
     x_min = max(0, x - r)
     x_max = min(arr.shape[0], x + r + 1)
     y_min = max(0, y - r)
@@ -134,7 +147,7 @@ def ball_average(x, y, z, arr, r):
 
 
 def get_single_pixel_height(x, y, combined_density_map, args):
-    for z in range(combined_density_map.shape[2] - 1, -1, -1):
+    for z in range(combined_density_map.shape[2] - args["needle_radius_px"], -1, -1):
         if ball_average(x, y, z, combined_density_map, args["needle_radius_px"]) > args["needle_threshold"]:
             return z / combined_density_map.shape[2]
     return 0
@@ -148,13 +161,28 @@ def get_height_map(combined_density_map, args):
     return height_map
 
 
+def output_hdf5(maps):
+    raise Exception("not yet implemented.")
+
+
 def main():
     args = parse_arguments()
     print(args)
-    images = []
+
+    maps = []
     for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
         combined_density_map = get_combined_density_map(i, args)
         height_map = get_height_map(combined_density_map, args)
+        maps.append(height_map)
+    if args["output_gif"]:
+        output_gif(args, maps)
+    if args["output_hdf5"]:
+        output_hdf5(maps)
+
+
+def output_gif(args, maps):
+    images = []
+    for height_map in maps:
         im = Image.fromarray((height_map * 255).astype(np.uint8)).resize(
             (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
         images.append(im)

@@ -21,7 +21,7 @@ def parse_arguments():
         description="A model of high speed atomic force microscopy, based on density maps from imp's nuclear pore "
                     "complex transport module.")
     # ========================= #
-    # SUB-SIMULATION PARAMETERS #
+    # NPC SIMULATION PARAMETERS #
     # ========================= #
     parser.add_argument('--npc-simulation',
                         action=argparse.BooleanOptionalAction,

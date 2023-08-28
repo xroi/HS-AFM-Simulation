@@ -3,6 +3,12 @@ import h5py
 import numpy as np
 from PIL import Image, ImageSequence
 
+"""
+todo:
+1. Add hdf5 output option.
+2. Single pixel height as average of box, with threshold. How to handle sides?
+"""
+
 
 def validate_args(args):
     if args["npc_simulation"]:
@@ -33,11 +39,12 @@ def parse_arguments():
                         required=True)
     parser.add_argument("--interval-ns",
                         type=int,
-                        help="Interval between calculation of the AFM map, in nanoseconds.",
+                        help="Interval between calculation of the AFM map, in nanoseconds. This should correlate with"
+                             "the time the AFM needle stays on a 'pixel'",
                         required=True)
-    # ========================= #
+    # ============== #
     # AFM PARAMETERS #
-    # ========================= #
+    # ============== #
     parser.add_argument("--min-x-coord",
                         type=int,
                         help="Specifies the first pixel on the X axis on which the simulation is ran (inclusive). "
@@ -67,6 +74,15 @@ def parse_arguments():
                         type=int,
                         help="Specifies the last pixel on the Z axis on which the simulation is ran (not inclusive). "
                              "Count starting from 0.",
+                        required=True)
+    parser.add_argument("--needle-threshold",
+                        type=int,
+                        help="The density under which the needle ignores.",
+                        required=True)
+    parser.add_argument("--needle-radius-px",
+                        type=int,
+                        help="Determines how far around the origin pixel the needle considers for determining pixel "
+                             "height. (Assuming ball shape).",
                         required=True)
 
     # ================= #
@@ -103,19 +119,32 @@ def get_combined_density_map(time, args):
     return combined_density_map
 
 
-def get_single_pixel_height(x, y, combined_density_map):
-    # todo: currently getting the highest pixel that has density grater than 0, maybe this isn't the correct approach
+def ball_average(x, y, z, arr, r):
+    # Written by AI
+    x_min = max(0, x - r)
+    x_max = min(arr.shape[0], x + r + 1)
+    y_min = max(0, y - r)
+    y_max = min(arr.shape[1], y + r + 1)
+    z_min = max(0, z - r)
+    z_max = min(arr.shape[2], z + r + 1)
+    sub_arr = arr[x_min:x_max, y_min:y_max, z_min:z_max]
+    xx, yy, zz = np.mgrid[:sub_arr.shape[0], :sub_arr.shape[1], :sub_arr.shape[2]]
+    mask = ((xx - (x - x_min)) ** 2 + (yy - (y - y_min)) ** 2 + (zz - (z - z_min)) ** 2) <= r ** 2
+    return np.mean(sub_arr[mask])
+
+
+def get_single_pixel_height(x, y, combined_density_map, args):
     for z in range(combined_density_map.shape[2] - 1, -1, -1):
-        if combined_density_map[x, y, z] > 0:
+        if ball_average(x, y, z, combined_density_map, args["needle_radius_px"]) > args["needle_threshold"]:
             return z / combined_density_map.shape[2]
     return 0
 
 
-def get_height_map(combined_density_map):
+def get_height_map(combined_density_map, args):
     height_map = np.zeros(shape=combined_density_map.shape[:2])
     for x in range(combined_density_map.shape[0]):
         for y in range(combined_density_map.shape[1]):
-            height_map[x, y] = get_single_pixel_height(x, y, combined_density_map)
+            height_map[x, y] = get_single_pixel_height(x, y, combined_density_map, args)
     return height_map
 
 
@@ -125,7 +154,7 @@ def main():
     images = []
     for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
         combined_density_map = get_combined_density_map(i, args)
-        height_map = get_height_map(combined_density_map)
+        height_map = get_height_map(combined_density_map, args)
         im = Image.fromarray((height_map * 255).astype(np.uint8)).resize(
             (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
         images.append(im)

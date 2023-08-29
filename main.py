@@ -87,6 +87,15 @@ def parse_arguments():
                         help="Determines how far around the origin pixel the needle considers for determining pixel "
                              "height. (Assuming ball shape). Should be greater than 1.",
                         required=True)
+    parser.add_argument("--needle-time-per-line-ns",
+                        type=float,
+                        help="Determines the amount of time it takes for a needle to pass a full line.",
+                        required=True)
+    parser.add_argument("--needle-time-between-scans-ns",
+                        type=float,
+                        help="Determines the amount of time it takes for the needle to return to the starting point "
+                             "to start the next frame.",
+                        required=True)
 
     # ================= #
     # OUTPUT PARAMETERS #
@@ -122,6 +131,9 @@ def parse_arguments():
 
 
 def get_combined_density_map(time, args):
+    """
+    Combines density maps of all floaters in a HDF5 file, by summing them up.
+    """
     x_size = args["max_x_coord"] - args["min_x_coord"]
     y_size = args["max_y_coord"] - args["min_y_coord"]
     z_size = args["max_z_coord"] - args["min_z_coord"]
@@ -147,21 +159,41 @@ def output_hdf5(maps):
     raise Exception("not yet implemented.")
 
 
+def get_needle_maps(real_time_maps, args):
+    size_x = real_time_maps[0].shape[0]
+    size_y = real_time_maps[0].shape[1]
+    time_per_pixel = args["needle_time_per_line_ns"] / size_x
+    needle_maps = []
+    total_time = 0.0
+    cur_needle_map_index = 0
+    while total_time < args["simulation_time_ns"]:
+        needle_maps.append(np.zeros(shape=real_time_maps[0].shape))
+        for y in size_y:
+            for x in size_x:
+                needle_maps[cur_needle_map_index][x, y] = real_time_maps[int(total_time / args["interval_ns"])][x, y]
+                total_time += time_per_pixel
+            total_time += args["needle_time_per_line_ns"]
+        total_time += args["needle-time-between-scans-ns"]
+    return needle_maps
+
+
 def main():
     args = parse_arguments()
     print(args)
 
-    maps = []
+    real_time_maps = []
     for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
         print(i)
         combined_density_map = get_combined_density_map(i, args)
         height_map = get_height_map(combined_density_map, args)
-        maps.append(height_map)
-    acorrs = temporal_auto_correlate(maps)
+        real_time_maps.append(height_map)
+    acorrs = temporal_auto_correlate(real_time_maps)
+    needle_maps = get_needle_maps(real_time_maps, args)
     if args["output_gif"]:
-        output_gif(args, maps)
+        output_gif(args, real_time_maps, f"{args['output_gif_path']}_real_time.gif")
+        output_gif(args, needle_maps, f"{args['output_gif_path']}_needle.gif")
     if args["output_hdf5"]:
-        output_hdf5(maps)
+        output_hdf5(real_time_maps)
 
 
 def temporal_auto_correlate(maps):
@@ -180,13 +212,14 @@ def temporal_auto_correlate(maps):
     return temporal_auto_correlations
 
 
-def output_gif(args, maps):
+def output_gif(args, maps, filename):
     images = []
     for height_map in maps:
         im = Image.fromarray((height_map * 255).astype(np.uint8)).resize(
             (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
         images.append(im)
-    images[0].save(args["output_gif_path"], append_images=images[1:], save_all=True, duration=100, loop=0)
+    images[0].save(filename, append_images=images[1:], save_all=True, duration=100,
+                   loop=0)
 
 
 if __name__ == "__main__":

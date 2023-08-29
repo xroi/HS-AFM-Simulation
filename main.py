@@ -15,6 +15,7 @@ todo:
 
 def validate_args(args):
     if args["npc_simulation"]:
+        # todo
         raise Exception("ERROR: Integrated npc simulation not yet implemented.")
 
 
@@ -156,6 +157,7 @@ def get_height_map(combined_density_map, args):
 
 
 def output_hdf5(maps):
+    # todo
     raise Exception("not yet implemented.")
 
 

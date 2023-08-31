@@ -152,8 +152,9 @@ def get_height_map(combined_density_map, args):
     height_map = np.zeros(shape=combined_density_map.shape[:2])
     for x in range(combined_density_map.shape[0]):
         for y in range(combined_density_map.shape[1]):
-            height_map[x, y] = height_funcs.get_single_pixel_height_old(x, y, combined_density_map, args)
-    height_map = height_map
+            height_map[x, y] = height_funcs.get_single_pixel_height_new(x, y, combined_density_map, args)
+    # Min max scale the data. todo, maybe bad approach (good for visualization) (maybe add as parameter?)
+    height_map = (height_map - np.min(height_map)) / (np.max(height_map) - np.min(height_map))
     return height_map
 
 

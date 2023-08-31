@@ -18,7 +18,7 @@ def ball_average(x, y, z, arr, r):
 def get_single_pixel_height_old(x, y, combined_density_map, args):
     for z in range(combined_density_map.shape[2] - args["needle_radius_px"], -1, -1):
         if ball_average(x, y, z, combined_density_map, args["needle_radius_px"]) > args["needle_threshold"]:
-            return z / combined_density_map.shape[2]
+            return z  # / combined_density_map.shape[2]
     return 0
 
 

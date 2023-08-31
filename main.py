@@ -153,6 +153,7 @@ def get_height_map(combined_density_map, args):
     for x in range(combined_density_map.shape[0]):
         for y in range(combined_density_map.shape[1]):
             height_map[x, y] = height_funcs.get_single_pixel_height_old(x, y, combined_density_map, args)
+    height_map = height_map
     return height_map
 
 
@@ -170,13 +171,20 @@ def get_needle_maps(real_time_maps, args):
     cur_needle_map_index = 0
     while total_time < args["simulation_time_ns"]:
         needle_maps.append(np.zeros(shape=real_time_maps[0].shape))
-        for y in size_y:
-            for x in size_x:
+        for y in range(size_y):
+            for x in range(size_x):
                 needle_maps[cur_needle_map_index][x, y] = real_time_maps[int(total_time / args["interval_ns"])][x, y]
                 total_time += time_per_pixel
+                if total_time >= total_time < args["simulation_time_ns"]:
+                    break
             total_time += args["needle_time_per_line_ns"]
-        total_time += args["needle-time-between-scans-ns"]
-    return needle_maps
+            if total_time >= total_time < args["simulation_time_ns"]:
+                break
+        total_time += args["needle_time_between_scans_ns"]
+        if total_time >= total_time < args["simulation_time_ns"]:
+            break
+        cur_needle_map_index += 1
+    return needle_maps[:cur_needle_map_index]
 
 
 def main():
@@ -193,7 +201,8 @@ def main():
     needle_maps = get_needle_maps(real_time_maps, args)
     if args["output_gif"]:
         output_gif(args, real_time_maps, f"{args['output_gif_path']}_real_time.gif")
-        output_gif(args, needle_maps, f"{args['output_gif_path']}_needle.gif")
+        if len(needle_maps) > 0:
+            output_gif(args, needle_maps, f"{args['output_gif_path']}_needle.gif")
     if args["output_hdf5"]:
         output_hdf5(real_time_maps)
 
@@ -206,11 +215,11 @@ def temporal_auto_correlate(maps):
     temporal_auto_correlations = np.zeros(stacked_maps.shape)
     for x in range(stacked_maps.shape[0]):
         for y in range(stacked_maps.shape[1]):
-            pixel_time_series = pd.Series(stacked_maps[x, y,])
+            pixel_time_series = pd.Series(stacked_maps[x, y, :])
             auto_corrs = []
-            for delta_t in range(stacked_maps.shape[2] - 1):
+            for delta_t in range(stacked_maps.shape[2]):
                 auto_corrs.append(pixel_time_series.autocorr(lag=delta_t))
-            temporal_auto_correlations[x, y,] = np.array(auto_corrs)
+            temporal_auto_correlations[x, y, :] = np.array(auto_corrs)
     return temporal_auto_correlations
 
 

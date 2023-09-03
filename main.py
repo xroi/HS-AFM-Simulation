@@ -238,8 +238,9 @@ def temporal_auto_correlate(maps):
 def output_gif(args, maps, filename):
     images = []
     for height_map in maps:
-        im = Image.fromarray((height_map * 255).astype(np.uint8)).resize(
+        im = Image.fromarray((height_map.T * 255).astype(np.uint8)).resize(
             (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
+        # todo not sure about .T
         images.append(im)
     images[0].save(filename, append_images=images[1:], save_all=True, duration=100,
                    loop=0)

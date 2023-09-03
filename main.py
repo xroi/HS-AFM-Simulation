@@ -87,11 +87,16 @@ def parse_arguments():
                         type=int,
                         help="Determines how far around the origin pixel the needle considers for determining pixel "
                              "height. (Assuming ball shape). Should be greater than 1.",
-                        required=True)
-    parser.add_argument("--needle-time-per-line-ns",
-                        type=float,
-                        help="Determines the amount of time it takes for a needle to pass a full line.",
-                        required=True)
+                        required=True)  # todo currently does nothing (used for old function)
+    speed_grp = parser.add_mutually_exclusive_group(required=True)
+    speed_grp.add_argument("--needle-time-per-line-ns",
+                           type=float,
+                           help="Determines the amount of time it takes for a needle to pass a full line. Mutually "
+                                "exclusive with needle-time-per-pixel-ns.")
+    speed_grp.add_argument("--needle-time-per-pixel-ns",
+                           type=float,
+                           help="Determines the amount of time it takes for a needle to pass a single pixel. Mutually "
+                                "exclusive with needle-time-per-line-ns.")
     parser.add_argument("--needle-time-between-scans-ns",
                         type=float,
                         help="Determines the amount of time it takes for the needle to return to the starting point "
@@ -166,7 +171,12 @@ def output_hdf5(maps):
 def get_needle_maps(real_time_maps, args):
     size_x = real_time_maps[0].shape[0]
     size_y = real_time_maps[0].shape[1]
-    time_per_pixel = args["needle_time_per_line_ns"] / size_x
+    if args["needle_time_per_line_ns"] is not None:
+        time_per_line = args["needle_time_per_line_ns"]
+        time_per_pixel = args["needle_time_per_line_ns"] / size_x
+    else:  # args["needle_time_per_pixel_ns"] is not None
+        time_per_line = args["needle_time_per_pixel_ns"] * size_x
+        time_per_pixel = args["needle_time_per_pixel_ns"]
     needle_maps = []
     total_time = 0.0
     cur_needle_map_index = 0
@@ -176,13 +186,13 @@ def get_needle_maps(real_time_maps, args):
             for x in range(size_x):
                 needle_maps[cur_needle_map_index][x, y] = real_time_maps[int(total_time / args["interval_ns"])][x, y]
                 total_time += time_per_pixel
-                if total_time >= total_time < args["simulation_time_ns"]:
+                if int(total_time / args["interval_ns"]) >= len(real_time_maps):
                     break
-            total_time += args["needle_time_per_line_ns"]
-            if total_time >= total_time < args["simulation_time_ns"]:
+            total_time += time_per_line
+            if int(total_time / args["interval_ns"]) >= len(real_time_maps):
                 break
         total_time += args["needle_time_between_scans_ns"]
-        if total_time >= total_time < args["simulation_time_ns"]:
+        if int(total_time / args["interval_ns"]) >= len(real_time_maps):
             break
         cur_needle_map_index += 1
     return needle_maps[:cur_needle_map_index]
@@ -198,7 +208,8 @@ def main():
         combined_density_map = get_combined_density_map(i, args)
         height_map = get_height_map(combined_density_map, args)
         real_time_maps.append(height_map)
-    acorrs = temporal_auto_correlate(real_time_maps)
+    # todo (working but not used)
+    # acorrs = temporal_auto_correlate(real_time_maps)
     needle_maps = get_needle_maps(real_time_maps, args)
     if args["output_gif"]:
         output_gif(args, real_time_maps, f"{args['output_gif_path']}_real_time.gif")

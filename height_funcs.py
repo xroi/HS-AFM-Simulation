@@ -23,4 +23,7 @@ def get_single_pixel_height_old(x, y, combined_density_map, args):
 
 
 def get_single_pixel_height_new(x, y, combined_density_map, args):
-    return np.sum(combined_density_map[x, y, :])
+    value = np.sum(combined_density_map[x, y, :])
+    if value > args["needle_threshold"]:
+        return value
+    return 0

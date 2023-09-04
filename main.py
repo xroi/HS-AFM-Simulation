@@ -1,21 +1,18 @@
 import argparse
 import h5py
 import numpy as np
-import scipy as scipy
-from PIL import Image, ImageSequence
+from PIL import Image
 import height_funcs
 import pandas as pd
 
 """
 todo:
 1. Add hdf5 output option.
-2. Single pixel height as average of box.
 """
 
 
 def validate_args(args):
     if args["npc_simulation"]:
-        # todo
         raise Exception("ERROR: Integrated npc simulation not yet implemented.")
 
 
@@ -169,6 +166,10 @@ def output_hdf5(maps):
 
 
 def get_needle_maps(real_time_maps, args):
+    """
+    Given real time maps, calculates height maps from the AFM needle 'point of view', i.e. according to it's speed.
+    The real time map resolution affects this, since for each pixel, the time floors to the most recent image.
+    """
     size_x = real_time_maps[0].shape[0]
     size_y = real_time_maps[0].shape[1]
     if args["needle_time_per_line_ns"] is not None:
@@ -208,9 +209,10 @@ def main():
         combined_density_map = get_combined_density_map(i, args)
         height_map = get_height_map(combined_density_map, args)
         real_time_maps.append(height_map)
-    # todo (working but not used)
-    # acorrs = temporal_auto_correlate(real_time_maps)
     needle_maps = get_needle_maps(real_time_maps, args)
+    # todo (working but not used)
+    # real_time_acorrs = temporal_auto_correlate(real_time_maps)
+    # needle_acorrs = temporal_auto_correlate(real_time_maps)
     if args["output_gif"]:
         output_gif(args, real_time_maps, f"{args['output_gif_path']}_real_time.gif")
         if len(needle_maps) > 0:
@@ -240,7 +242,6 @@ def output_gif(args, maps, filename):
     for height_map in maps:
         im = Image.fromarray((height_map.T * 255).astype(np.uint8)).resize(
             (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
-        # todo not sure about .T
         images.append(im)
     images[0].save(filename, append_images=images[1:], save_all=True, duration=100,
                    loop=0)

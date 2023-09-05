@@ -30,6 +30,7 @@ def z_test(x, y, density_map, needle_threshold, slab_top_z, is_in_tunnel):
     density_sum = 0
     for z in range(density_map.shape[2] - 1, -1, -1):
         density_sum += density_map[x, y, z]
+        # density_sum += utils.get_circle_median(density_map[:, :, z], x, y, 1)
         if not is_in_tunnel and z < slab_top_z:
             density_sum += np.inf
         if density_sum > needle_threshold:

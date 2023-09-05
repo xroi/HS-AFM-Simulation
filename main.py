@@ -50,7 +50,7 @@ def output_hdf5(maps):
 
 def get_needle_maps(real_time_maps, args):
     """
-    Given real time maps, calculates height maps from the AFM needle 'point of view', i.e. according to it's speed.
+    Given real time maps, calculates height maps from the AFM needle 'point of view', i.e. according to its speed.
     The real time map resolution affects this, since for each pixel, the time floors to the most recent image.
     """
     size_x = real_time_maps[0].shape[0]
@@ -71,6 +71,8 @@ def get_needle_maps(real_time_maps, args):
             if int(total_time / args["interval_ns"]) >= len(real_time_maps):
                 break
         total_time += args["needle_time_between_scans_ns"]
+        if int(total_time / args["interval_ns"]) >= len(real_time_maps):
+            break
         cur_needle_map_index += 1
     return needle_maps[:cur_needle_map_index]
 
@@ -99,13 +101,15 @@ def main():
     real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
     # todo (working but not used)
-    # real_time_acorrs = temporal_auto_correlate(real_time_maps)
+    real_time_acorrs = temporal_auto_correlate(real_time_maps)
     # needle_acorrs = temporal_auto_correlate(real_time_maps)
 
     if args["output_gif"]:
-        output_gif(args, scale_maps(real_time_maps), f"{args['output_gif_path']}_real_time.gif")
+        output_gif(args, scale_maps(real_time_maps, args["min_z_coord"], args["max_z_coord"]),
+                   f"{args['output_gif_path']}_real_time.gif")
         if len(needle_maps) > 0:
-            output_gif(args, scale_maps(needle_maps), f"{args['output_gif_path']}_needle.gif")
+            output_gif(args, scale_maps(needle_maps, args["min_z_coord"], args["max_z_coord"]),
+                       f"{args['output_gif_path']}_needle.gif")
     if args["output_hdf5"]:
         output_hdf5(real_time_maps)
 

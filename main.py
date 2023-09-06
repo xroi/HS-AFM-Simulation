@@ -4,17 +4,18 @@ import numpy as np
 import statsmodels.api as statsmodels
 from PIL import Image
 import height_funcs
-import pandas as pd
+import utils
 
 """
 todo:
-1. Add hdf5 output option.
+1. absolute threshold calculation
+2. nuclear membrane z lower threshold..... 
 """
 
 
 def validate_args(args):
     if args["npc_simulation"]:
-        raise Exception("ERROR: Integrated npc simulation not yet implemented.")
+        raise Exception("Integrated npc simulation not yet implemented.")
 
 
 def parse_arguments():
@@ -35,14 +36,17 @@ def parse_arguments():
                         type=str,
                         help="Path to the folder containing hdf5 density map files, to be used in the case of "
                              "--no-npc-simulation flag. Files should be named <delta_time_in_ns>.pb.hdf5")
-    parser.add_argument("--simulation-time-ns",
+    parser.add_argument("--simulation-start-time-ns",
                         type=int,
-                        help="How long the simulation runs, in nanoseconds.",
+                        help="Start time of the AFM simulation in nanoseconds. (NPC will be simulated since 0)",
+                        required=True)
+    parser.add_argument("--simulation-end-time-ns",
+                        type=int,
+                        help="End time of the AFM simulation in nanoseconds. (NPC will be simulated since 0)",
                         required=True)
     parser.add_argument("--interval-ns",
                         type=int,
-                        help="Interval between calculation of the AFM map, in nanoseconds. This should correlate with"
-                             "the time the AFM needle stays on a 'pixel'",
+                        help="Interval time of the NPC simulation in nanoseconds.",
                         required=True)
     # ============== #
     # AFM PARAMETERS #
@@ -192,9 +196,9 @@ def get_needle_maps(real_time_maps, args):
         time_per_line = args["needle_time_per_pixel_ns"] * size_x
         time_per_pixel = args["needle_time_per_pixel_ns"]
     needle_maps = []
-    total_time = 0.0
+    total_time = float(args["simulation_start_time_ns"])
     cur_needle_map_index = 0
-    while total_time < args["simulation_time_ns"]:
+    while total_time < args["simulation_end_time_ns"]:
         needle_maps.append(np.zeros(shape=real_time_maps[0].shape))
         for y in range(size_y):
             for x in range(size_x):
@@ -232,7 +236,7 @@ def main():
 def get_real_time_maps(args):
     real_time_maps = []
     height_func = height_funcs.get_height_func(args["z_func"])
-    for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
+    for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
         print(i)
         combined_density_map = get_combined_density_map(i, args)
         height_map = get_height_map(combined_density_map, height_func, args)

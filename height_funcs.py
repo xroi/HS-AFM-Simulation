@@ -15,15 +15,35 @@ def ball_average(x, y, z, arr, r):
     return np.mean(sub_arr[mask])
 
 
-def get_single_pixel_height_old(x, y, combined_density_map, args):
+def z_top(x, y, combined_density_map, args):
     for z in range(combined_density_map.shape[2] - args["needle_radius_px"], -1, -1):
         if ball_average(x, y, z, combined_density_map, args["needle_radius_px"]) > args["needle_threshold"]:
             return z  # / combined_density_map.shape[2]
     return 0
 
 
-def get_single_pixel_height_new(x, y, combined_density_map, args):
+def z_sum(x, y, combined_density_map, args):
     value = np.sum(combined_density_map[x, y, :])
     if value > args["needle_threshold"]:
         return value
     return 0
+
+
+def z_fraction(x, y, combined_density_map, args):
+    fraction_threshold = np.sum(combined_density_map[x, y, :]) * args["needle_fraction"]
+    cur = 0
+    for z in range(combined_density_map.shape[2]):
+        cur += combined_density_map[x, y, z]
+        if cur > args["needle_threshold"] and cur > fraction_threshold:
+            return z
+    return 0
+
+
+def get_height_func(name):
+    match name:
+        case "z_top":
+            return z_top
+        case "z_sum":
+            return z_sum
+        case "z_fraction":
+            return z_fraction

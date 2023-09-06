@@ -76,15 +76,27 @@ def parse_arguments():
                         help="Specifies the last pixel on the Z axis on which the simulation is ran (not inclusive). "
                              "Count starting from 0.",
                         required=True)
+    # Z height functions:
+    parser.add_argument("--z-func",
+                        type=str,
+                        choices=["z_top", "z_sum", "z_fraction"],
+                        required=True)
     parser.add_argument("--needle-threshold",
                         type=float,
-                        help="The density under which the needle ignores.",
+                        help="The density under which the needle ignores. Used for all z funcs.",
                         required=True)
     parser.add_argument("--needle-radius-px",
                         type=int,
                         help="Determines how far around the origin pixel the needle considers for determining pixel "
-                             "height. (Assuming ball shape). Should be greater than 1.",
-                        required=True)  # todo currently does nothing (used for old function)
+                             "height. (Assuming ball shape). Should be greater than 1. Only used for z_top z func.",
+                        required=True)
+    parser.add_argument("--needle-fraction",
+                        type=float,
+                        help="Determined the fraction of the sum of density needed to be above the z value in order "
+                             "to return in. Should be between 0 and 1 (inclusive). only used for z_fraction z func.",
+                        required=True)
+
+    # Needle speed:
     speed_grp = parser.add_mutually_exclusive_group(required=True)
     speed_grp.add_argument("--needle-time-per-line-ns",
                            type=float,
@@ -150,11 +162,11 @@ def get_combined_density_map(time, args):
     return combined_density_map
 
 
-def get_height_map(combined_density_map, args):
+def get_height_map(combined_density_map, height_func, args):
     height_map = np.zeros(shape=combined_density_map.shape[:2])
     for x in range(combined_density_map.shape[0]):
         for y in range(combined_density_map.shape[1]):
-            height_map[x, y] = height_funcs.get_single_pixel_height_new(x, y, combined_density_map, args)
+            height_map[x, y] = height_func(x, y, combined_density_map, args)
     # Min max scale the data. todo, maybe bad approach (good for visualization) (maybe add as parameter?)
     height_map = (height_map - np.min(height_map)) / (np.max(height_map) - np.min(height_map))
     return height_map
@@ -203,12 +215,7 @@ def main():
     args = parse_arguments()
     print(args)
 
-    real_time_maps = []
-    for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
-        print(i)
-        combined_density_map = get_combined_density_map(i, args)
-        height_map = get_height_map(combined_density_map, args)
-        real_time_maps.append(height_map)
+    real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
     # todo (working but not used)
     # real_time_acorrs = temporal_auto_correlate(real_time_maps)
@@ -219,6 +226,17 @@ def main():
             output_gif(args, needle_maps, f"{args['output_gif_path']}_needle.gif")
     if args["output_hdf5"]:
         output_hdf5(real_time_maps)
+
+
+def get_real_time_maps(args):
+    real_time_maps = []
+    height_func = height_funcs.get_height_func(args["z-func"])
+    for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
+        print(i)
+        combined_density_map = get_combined_density_map(i, args)
+        height_map = get_height_map(combined_density_map, height_func, args)
+        real_time_maps.append(height_map)
+    return real_time_maps
 
 
 def temporal_auto_correlate(maps):

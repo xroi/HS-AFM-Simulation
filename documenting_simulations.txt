@@ -1,7 +1,7 @@
 The folder should be named <date(dd-mm-yyyy)>_<simulation_version>
 
 and contain the following items:
-1. DensityMaps folder, including the hdf files.
+1. (Optional) DensityMaps folder, including the hdf files.
 2. config.py, the NPC Simulation configuration file.
 3. params.txt, containing the parameters used to run both the NPC simulation and the AFM simulation.
 4. Output folder, containing the output from the AFM simulation.

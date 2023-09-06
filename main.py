@@ -1,6 +1,7 @@
 import argparse
 import h5py
 import numpy as np
+import statsmodels.api as statsmodels
 from PIL import Image
 import height_funcs
 import pandas as pd
@@ -79,7 +80,7 @@ def parse_arguments():
     # Z height functions:
     parser.add_argument("--z-func",
                         type=str,
-                        choices=["z_top", "z_sum", "z_fraction"],
+                        choices=["z_top", "z_sum", "z_fraction", "z_test"],
                         required=True)
     parser.add_argument("--needle-threshold",
                         type=float,
@@ -230,7 +231,7 @@ def main():
 
 def get_real_time_maps(args):
     real_time_maps = []
-    height_func = height_funcs.get_height_func(args["z-func"])
+    height_func = height_funcs.get_height_func(args["z_func"])
     for i in range(args["interval_ns"], args["simulation_time_ns"], args["interval_ns"]):
         print(i)
         combined_density_map = get_combined_density_map(i, args)
@@ -244,21 +245,18 @@ def temporal_auto_correlate(maps):
     Calculates the temporal auto correlation of each pixel with itself over different time lags.
     """
     stacked_maps = np.dstack(maps)
-    temporal_auto_correlations = np.zeros(stacked_maps.shape)
+    nlags = int(min(10 * np.log10(stacked_maps.shape[2]), stacked_maps.shape[2] - 1))
+    temporal_auto_correlations = np.zeros(shape=(stacked_maps.shape[0], stacked_maps.shape[1], nlags + 1))
     for x in range(stacked_maps.shape[0]):
         for y in range(stacked_maps.shape[1]):
-            pixel_time_series = pd.Series(stacked_maps[x, y, :])
-            auto_corrs = []
-            for delta_t in range(stacked_maps.shape[2]):
-                auto_corrs.append(pixel_time_series.autocorr(lag=delta_t))
-            temporal_auto_correlations[x, y, :] = np.array(auto_corrs)
+            temporal_auto_correlations[x, y, :] = statsmodels.tsa.stattools.acf(stacked_maps[x, y, :])
     return temporal_auto_correlations
 
 
 def output_gif(args, maps, filename):
     images = []
     for height_map in maps:
-        im = Image.fromarray((height_map.T * 255).astype(np.uint8)).resize(
+        im = Image.fromarray((np.flipud(height_map.T) * 255).astype(np.uint8)).resize(
             (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
         images.append(im)
     images[0].save(filename, append_images=images[1:], save_all=True, duration=100,

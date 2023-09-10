@@ -9,29 +9,29 @@ def z_top(x, y, combined_density_map, args):
     return 0
 
 
-def z_sum(x, y, combined_density_map, args):
-    value = np.sum(combined_density_map[x, y, :])
-    if value > args["needle_threshold"]:
+def z_sum(x, y, density_map, args, needle_threshold):
+    value = np.sum(density_map[x, y, :])
+    if value > needle_threshold:
         return value
     return 0
 
 
-def z_fraction(x, y, combined_density_map, args):
-    fraction_threshold = np.sum(combined_density_map[x, y, :]) * args["needle_fraction"]
+def z_fraction(x, y, density_map, needle_threshold, args):
+    fraction_threshold = np.sum(density_map[x, y, :]) * args["needle_fraction"]
     cur = 0
-    for z in range(combined_density_map.shape[2]):
-        cur += combined_density_map[x, y, z]
-        if cur > args["needle_threshold"] and cur > fraction_threshold:
+    for z in range(density_map.shape[2]):
+        cur += density_map[x, y, z]
+        if cur > needle_threshold and cur > fraction_threshold:
             return z
     return 0
 
 
-def z_test(x, y, combined_density_map, args):
-    z = combined_density_map.shape[2] - 1
+def z_test(x, y, density_map, needle_threshold, args):
+    z = density_map.shape[2] - 1
     cur = 0
-    for z in range(combined_density_map.shape[2] - 1, -1, -1):
-        cur += combined_density_map[x, y, z]
-        if cur > args["needle_threshold"]:
+    for z in range(density_map.shape[2] - 1, -1, -1):
+        cur += density_map[x, y, z]
+        if cur > needle_threshold:
             return z
     return 0
 

@@ -1,9 +1,9 @@
-import argparse
 import h5py
 import numpy as np
 import statsmodels.api as statsmodels
 from PIL import Image
 import height_funcs
+import args as arguments
 import utils
 
 """
@@ -11,143 +11,6 @@ todo:
 1. absolute threshold calculation
 2. nuclear membrane z lower threshold..... 
 """
-
-
-def validate_args(args):
-    if args["npc_simulation"]:
-        raise Exception("Integrated npc simulation not yet implemented.")
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(
-        prog="HS-AFM-Simulation",
-        description="A model of high speed atomic force microscopy, based on density maps from imp's nuclear pore "
-                    "complex transport module.")
-    # ========================= #
-    # NPC SIMULATION PARAMETERS #
-    # ========================= #
-    parser.add_argument('--npc-simulation',
-                        action=argparse.BooleanOptionalAction,
-                        help="In the case of --npc-simulation flag, the npc simulations run 'live'. In the case of "
-                             "--no-npc-simulation flag, the program uses files in the folder specified with "
-                             "--existing_files_path",
-                        required=True)
-    parser.add_argument("--existing-files-path",
-                        type=str,
-                        help="Path to the folder containing hdf5 density map files, to be used in the case of "
-                             "--no-npc-simulation flag. Files should be named <delta_time_in_ns>.pb.hdf5")
-    parser.add_argument("--simulation-start-time-ns",
-                        type=int,
-                        help="Start time of the AFM simulation in nanoseconds. (NPC will be simulated since 0)",
-                        required=True)
-    parser.add_argument("--simulation-end-time-ns",
-                        type=int,
-                        help="End time of the AFM simulation in nanoseconds. (NPC will be simulated since 0)",
-                        required=True)
-    parser.add_argument("--interval-ns",
-                        type=int,
-                        help="Interval time of the NPC simulation in nanoseconds.",
-                        required=True)
-    # ============== #
-    # AFM PARAMETERS #
-    # ============== #
-    parser.add_argument("--min-x-coord",
-                        type=int,
-                        help="Specifies the first pixel on the X axis on which the simulation is ran (inclusive). "
-                             "Count starting from 0.",
-                        required=True)
-    parser.add_argument("--max-x-coord",
-                        type=int,
-                        help="Specifies the last pixel on the X axis on which the simulation is ran (not inclusive). "
-                             "Count starting from 0.",
-                        required=True)
-    parser.add_argument("--min-y-coord",
-                        type=int,
-                        help="Specifies the first pixel on the Y axis on which the simulation is ran (inclusive). "
-                             "Count starting from 0.",
-                        required=True)
-    parser.add_argument("--max-y-coord",
-                        type=int,
-                        help="Specifies the last pixel on the Y axis on which the simulation is ran (not inclusive). "
-                             "Count starting from 0.",
-                        required=True)
-    parser.add_argument("--min-z-coord",
-                        type=int,
-                        help="Specifies the first pixel on the Z axis on which the simulation is ran (inclusive). "
-                             "Count starting from 0.",
-                        required=True)
-    parser.add_argument("--max-z-coord",
-                        type=int,
-                        help="Specifies the last pixel on the Z axis on which the simulation is ran (not inclusive). "
-                             "Count starting from 0.",
-                        required=True)
-    # Z height functions:
-    parser.add_argument("--z-func",
-                        type=str,
-                        choices=["z_top", "z_sum", "z_fraction", "z_test"],
-                        required=True)
-    parser.add_argument("--needle-threshold",
-                        type=float,
-                        help="The density under which the needle ignores. Used for all z funcs.",
-                        required=True)
-    parser.add_argument("--needle-radius-px",
-                        type=int,
-                        help="Determines how far around the origin pixel the needle considers for determining pixel "
-                             "height. (Assuming ball shape). Should be greater than 1. Only used for z_top z func.",
-                        required=True)
-    parser.add_argument("--needle-fraction",
-                        type=float,
-                        help="Determined the fraction of the sum of density needed to be above the z value in order "
-                             "to return in. Should be between 0 and 1 (inclusive). only used for z_fraction z func.",
-                        required=True)
-
-    # Needle speed:
-    speed_grp = parser.add_mutually_exclusive_group(required=True)
-    speed_grp.add_argument("--needle-time-per-line-ns",
-                           type=float,
-                           help="Determines the amount of time it takes for a needle to pass a full line. Mutually "
-                                "exclusive with needle-time-per-pixel-ns.")
-    speed_grp.add_argument("--needle-time-per-pixel-ns",
-                           type=float,
-                           help="Determines the amount of time it takes for a needle to pass a single pixel. Mutually "
-                                "exclusive with needle-time-per-line-ns.")
-    parser.add_argument("--needle-time-between-scans-ns",
-                        type=float,
-                        help="Determines the amount of time it takes for the needle to return to the starting point "
-                             "to start the next frame.",
-                        required=True)
-
-    # ================= #
-    # OUTPUT PARAMETERS #
-    # ================= #
-    parser.add_argument('--output-gif',
-                        action=argparse.BooleanOptionalAction,
-                        help="Outputs a gif if '--output-gif', doesn't if --no-output-gif",
-                        required=True)
-    parser.add_argument("--output-gif-path",
-                        type=str,
-                        help="Path to output gif file.",
-                        required=True)
-    parser.add_argument("--output_resolution_x",
-                        type=int,
-                        help="x axis Resolution of output gif in pixels. (Up-scaled from original height maps size)",
-                        required=True)
-    parser.add_argument("--output_resolution_y",
-                        type=int,
-                        help="y axis Resolution of output gif in pixels. (Up-scaled from original height maps size)",
-                        required=True)
-    parser.add_argument('--output-hdf5',
-                        action=argparse.BooleanOptionalAction,
-                        help="Outputs a hdf5 file if '--output-hdf5', doesn't if --no-output-hdf5",
-                        required=True)
-    parser.add_argument("--output-hdf5-path",
-                        type=str,
-                        help="Path to output hdf5 file.",
-                        required=True)
-
-    args = vars(parser.parse_args())
-    validate_args(args)
-    return args
 
 
 def get_combined_density_map(time, args):
@@ -167,11 +30,11 @@ def get_combined_density_map(time, args):
     return combined_density_map
 
 
-def get_height_map(combined_density_map, height_func, args):
-    height_map = np.zeros(shape=combined_density_map.shape[:2])
-    for x in range(combined_density_map.shape[0]):
-        for y in range(combined_density_map.shape[1]):
-            height_map[x, y] = height_func(x, y, combined_density_map, args)
+def get_height_map(density_map, height_func, needle_threshold, args):
+    height_map = np.zeros(shape=density_map.shape[:2])
+    for x in range(density_map.shape[0]):
+        for y in range(density_map.shape[1]):
+            height_map[x, y] = height_func(x, y, density_map, needle_threshold, args)
     # Min max scale the data. todo, maybe bad approach (good for visualization) (maybe add as parameter?)
     height_map = (height_map - np.min(height_map)) / (np.max(height_map) - np.min(height_map))
     return height_map
@@ -189,12 +52,7 @@ def get_needle_maps(real_time_maps, args):
     """
     size_x = real_time_maps[0].shape[0]
     size_y = real_time_maps[0].shape[1]
-    if args["needle_time_per_line_ns"] is not None:
-        time_per_line = args["needle_time_per_line_ns"]
-        time_per_pixel = args["needle_time_per_line_ns"] / size_x
-    else:  # args["needle_time_per_pixel_ns"] is not None
-        time_per_line = args["needle_time_per_pixel_ns"] * size_x
-        time_per_pixel = args["needle_time_per_pixel_ns"]
+    time_per_line, time_per_pixel = get_times(args, size_x)
     needle_maps = []
     total_time = float(args["simulation_start_time_ns"])
     cur_needle_map_index = 0
@@ -216,8 +74,18 @@ def get_needle_maps(real_time_maps, args):
     return needle_maps[:cur_needle_map_index]
 
 
+def get_times(args, size_x):
+    if args["needle_time_per_line_ns"] is not None:
+        time_per_line = args["needle_time_per_line_ns"]
+        time_per_pixel = args["needle_time_per_line_ns"] / size_x
+    else:  # args["needle_time_per_pixel_ns"] is not None
+        time_per_line = args["needle_time_per_pixel_ns"] * size_x
+        time_per_pixel = args["needle_time_per_pixel_ns"]
+    return time_per_line, time_per_pixel
+
+
 def main():
-    args = parse_arguments()
+    args = arguments.parse_arguments()
     print(args)
 
     real_time_maps = get_real_time_maps(args)
@@ -225,6 +93,7 @@ def main():
     # todo (working but not used)
     # real_time_acorrs = temporal_auto_correlate(real_time_maps)
     # needle_acorrs = temporal_auto_correlate(real_time_maps)
+
     if args["output_gif"]:
         output_gif(args, real_time_maps, f"{args['output_gif_path']}_real_time.gif")
         if len(needle_maps) > 0:
@@ -233,13 +102,25 @@ def main():
         output_hdf5(real_time_maps)
 
 
+def get_needle_threshold(args, density_maps):
+    if args["calc_needle_threshold"] is True:
+        threshold = utils.median_threshold(density_maps, args["calc_threshold_r_px"], args["calc_threshold_frac"])
+        print(f"Calculated needle threshold is: {threshold}")
+        return threshold
+    else:
+        return args["needle_custom_threshold"]
+
+
 def get_real_time_maps(args):
+    density_maps = []
     real_time_maps = []
     height_func = height_funcs.get_height_func(args["z_func"])
     for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
-        print(i)
-        combined_density_map = get_combined_density_map(i, args)
-        height_map = get_height_map(combined_density_map, height_func, args)
+        density_maps.append(get_combined_density_map(i, args))
+    needle_threshold = get_needle_threshold(args, density_maps)
+    for i, density_map in enumerate(density_maps):
+        print(f"{i}/{len(density_maps)}")
+        height_map = get_height_map(density_map, height_func, needle_threshold, args)
         real_time_maps.append(height_map)
     return real_time_maps
 
@@ -263,8 +144,7 @@ def output_gif(args, maps, filename):
         im = Image.fromarray((np.flipud(height_map.T) * 255).astype(np.uint8)).resize(
             (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
         images.append(im)
-    images[0].save(filename, append_images=images[1:], save_all=True, duration=100,
-                   loop=0)
+    images[0].save(filename, append_images=images[1:], save_all=True, duration=100, loop=0)
 
 
 if __name__ == "__main__":

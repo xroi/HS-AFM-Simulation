@@ -8,8 +8,8 @@ import utils
 
 """
 todo:
-1. absolute threshold calculation
-2. nuclear membrane z lower threshold..... 
+PROBLEM:
+if there is something above the membrane, it doesn't get detected. why? should the membrane have density?
 """
 
 

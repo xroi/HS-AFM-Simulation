@@ -22,6 +22,10 @@ def get_ball_median(arr, x, y, z, r):
     return np.median(get_ball_mask(arr, x, y, z, r))
 
 
+def is_in_circle(x, y, r, center_x, center_y):
+    return np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2) < r
+
+
 def median_threshold(density_maps, r, frac):
     """Calculates a threshold for densities using a fraction of the median in a ball of radius r around the center."""
     x = int(density_maps[0].shape[0] / 2)
@@ -30,7 +34,6 @@ def median_threshold(density_maps, r, frac):
     vals = []
     for density_map in density_maps:
         arr = get_ball_mask(density_map, x, y, z, r)
-        arr = arr[arr != 0]
         for val in arr:
             vals.append(val)
-    return np.median(vals) * frac
+    return np.median(vals) * frac  # todo this is usually 0.

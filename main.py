@@ -30,13 +30,11 @@ def get_combined_density_map(time, args):
     return combined_density_map
 
 
-def get_height_map(density_map, height_func, needle_threshold, args):
+def get_height_map(density_map, height_func, needle_threshold, slab_top_z, center_x, center_y, args):
     height_map = np.zeros(shape=density_map.shape[:2])
     for x in range(density_map.shape[0]):
         for y in range(density_map.shape[1]):
-            height_map[x, y] = height_func(x, y, density_map, needle_threshold, args)
-    # Min max scale the data. todo, maybe bad approach (good for visualization) (maybe add as parameter?)
-    height_map = (height_map - np.min(height_map)) / (np.max(height_map) - np.min(height_map))
+            height_map[x, y] = height_func(x, y, density_map, needle_threshold, slab_top_z, center_x, center_y, args)
     return height_map
 
 
@@ -84,6 +82,13 @@ def get_times(args, size_x):
     return time_per_line, time_per_pixel
 
 
+def get_hdf5_size(filename):
+    with h5py.File(filename, "r") as f:
+        data = f["floater_xyz_hist"]
+        arr = np.array(data[list(data.keys())[0]])
+        return arr.shape
+
+
 def main():
     args = arguments.parse_arguments()
     print(args)
@@ -93,6 +98,12 @@ def main():
     # todo (working but not used)
     # real_time_acorrs = temporal_auto_correlate(real_time_maps)
     # needle_acorrs = temporal_auto_correlate(real_time_maps)
+
+    # Min max scale the data. todo, maybe bad approach (good for visualization) (maybe add as parameter?)
+    for i in range(len(real_time_maps)):
+        real_time_maps[i] = (real_time_maps[i] - args["min_z_coord"]) / (args["max_z_coord"] - 1 - args["min_z_coord"])
+    for i in range(len(needle_maps)):
+        needle_maps[i] = (needle_maps[i] - args["min_z_coord"]) / (args["max_z_coord"] - 1 - args["min_z_coord"])
 
     if args["output_gif"]:
         output_gif(args, real_time_maps, f"{args['output_gif_path']}_real_time.gif")
@@ -116,11 +127,15 @@ def get_real_time_maps(args):
     real_time_maps = []
     height_func = height_funcs.get_height_func(args["z_func"])
     for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
+        print(f"{i}")
         density_maps.append(get_combined_density_map(i, args))
     needle_threshold = get_needle_threshold(args, density_maps)
+    original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+    slab_top_z = int(original_shape[2] / 2 + args["slab_thickness_a"] / args["voxel_size_a"])
+    center_x = int(original_shape[0] / 2)
+    center_y = int(original_shape[1] / 2)
     for i, density_map in enumerate(density_maps):
-        print(f"{i}/{len(density_maps)}")
-        height_map = get_height_map(density_map, height_func, needle_threshold, args)
+        height_map = get_height_map(density_map, height_func, needle_threshold, slab_top_z, center_x, center_y, args)
         real_time_maps.append(height_map)
     return real_time_maps
 

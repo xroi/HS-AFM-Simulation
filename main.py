@@ -1,10 +1,10 @@
 import h5py
 import numpy as np
 import statsmodels.api as statsmodels
-from PIL import Image
 import height_funcs
 import args as arguments
 import utils
+import output
 from itertools import product
 
 """
@@ -43,11 +43,6 @@ def get_height_map(density_map, height_func, needle_threshold, slab_top_z, cente
     return height_map
 
 
-def output_hdf5(maps):
-    # todo
-    raise Exception("not yet implemented.")
-
-
 def get_needle_maps(real_time_maps, args):
     """
     Given real time maps, calculates height maps from the AFM needle 'point of view', i.e. according to its speed.
@@ -59,7 +54,7 @@ def get_needle_maps(real_time_maps, args):
     needle_maps = []
     total_time = float(args["simulation_start_time_ns"])
     cur_needle_map_index = 0
-    while total_time < args["simulation_end_time_ns"] and int(total_time / args["interval_ns"]) < len(real_time_maps):
+    while total_time < args["simulation_end_time_ns"]:
         needle_maps.append(np.zeros(shape=real_time_maps[0].shape))
         for y in range(size_y):
             for x in range(size_x):
@@ -102,16 +97,17 @@ def main():
     needle_maps = get_needle_maps(real_time_maps, args)
     # todo (working but not used)
     real_time_acorrs = temporal_auto_correlate(real_time_maps)
+    output.visualize_auto_corr(real_time_acorrs)
     # needle_acorrs = temporal_auto_correlate(real_time_maps)
 
     if args["output_gif"]:
-        output_gif(args, scale_maps(real_time_maps, args["min_z_coord"], args["max_z_coord"]),
-                   f"{args['output_gif_path']}_real_time.gif")
+        output.output_gif(args, scale_maps(real_time_maps, args["min_z_coord"], args["max_z_coord"]),
+                          f"{args['output_gif_path']}_real_time.gif")
         if len(needle_maps) > 0:
-            output_gif(args, scale_maps(needle_maps, args["min_z_coord"], args["max_z_coord"]),
-                       f"{args['output_gif_path']}_needle.gif")
+            output.output_gif(args, scale_maps(needle_maps, args["min_z_coord"], args["max_z_coord"]),
+                              f"{args['output_gif_path']}_needle.gif")
     if args["output_hdf5"]:
-        output_hdf5(real_time_maps)
+        output.output_hdf5(real_time_maps)
 
 
 def scale_maps(maps, min_z, max_z):
@@ -159,15 +155,6 @@ def temporal_auto_correlate(maps):
     for x, y in product(range(stacked_maps.shape[0]), range(stacked_maps.shape[1])):
         temporal_auto_correlations[x, y, :] = statsmodels.tsa.stattools.acf(stacked_maps[x, y, :])
     return temporal_auto_correlations
-
-
-def output_gif(args, maps, filename):
-    images = []
-    for height_map in maps:
-        im = Image.fromarray((np.flipud(height_map.T) * 255).astype(np.uint8)).resize(
-            (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
-        images.append(im)
-    images[0].save(filename, append_images=images[1:], save_all=True, duration=100, loop=0)
 
 
 if __name__ == "__main__":

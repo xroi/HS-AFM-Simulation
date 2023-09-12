@@ -5,11 +5,12 @@ from PIL import Image
 import height_funcs
 import args as arguments
 import utils
+from itertools import product
 
 """
 todo:
-PROBLEM:
-if there is something above the membrane, it doesn't get detected. why? should the membrane have density?
+refactor needed with height funcs
+PROBLEM: if there is something above the membrane, it doesn't get detected. why? should the membrane have density?
 """
 
 
@@ -32,9 +33,13 @@ def get_combined_density_map(time, args):
 
 def get_height_map(density_map, height_func, needle_threshold, slab_top_z, center_x, center_y, args):
     height_map = np.zeros(shape=density_map.shape[:2])
-    for x in range(density_map.shape[0]):
-        for y in range(density_map.shape[1]):
-            height_map[x, y] = height_func(x, y, density_map, needle_threshold, slab_top_z, center_x, center_y, args)
+    for x, y in product(range(density_map.shape[0]), range(density_map.shape[1])):
+        is_in_tunnel = utils.is_in_circle(x + args["min_x_coord"],
+                                          y + args["min_y_coord"],
+                                          args["tunnel_radius_a"] / args["voxel_size_a"],
+                                          center_x,
+                                          center_y)
+        height_map[x, y] = height_func(x, y, density_map, needle_threshold, slab_top_z, is_in_tunnel)
     return height_map
 
 
@@ -54,7 +59,7 @@ def get_needle_maps(real_time_maps, args):
     needle_maps = []
     total_time = float(args["simulation_start_time_ns"])
     cur_needle_map_index = 0
-    while total_time < args["simulation_end_time_ns"]:
+    while total_time < args["simulation_end_time_ns"] and int(total_time / args["interval_ns"]) < len(real_time_maps):
         needle_maps.append(np.zeros(shape=real_time_maps[0].shape))
         for y in range(size_y):
             for x in range(size_x):
@@ -66,8 +71,6 @@ def get_needle_maps(real_time_maps, args):
             if int(total_time / args["interval_ns"]) >= len(real_time_maps):
                 break
         total_time += args["needle_time_between_scans_ns"]
-        if int(total_time / args["interval_ns"]) >= len(real_time_maps):
-            break
         cur_needle_map_index += 1
     return needle_maps[:cur_needle_map_index]
 
@@ -99,18 +102,20 @@ def main():
     # real_time_acorrs = temporal_auto_correlate(real_time_maps)
     # needle_acorrs = temporal_auto_correlate(real_time_maps)
 
-    # Min max scale the data. todo, maybe bad approach (good for visualization) (maybe add as parameter?)
-    for i in range(len(real_time_maps)):
-        real_time_maps[i] = (real_time_maps[i] - args["min_z_coord"]) / (args["max_z_coord"] - 1 - args["min_z_coord"])
-    for i in range(len(needle_maps)):
-        needle_maps[i] = (needle_maps[i] - args["min_z_coord"]) / (args["max_z_coord"] - 1 - args["min_z_coord"])
-
     if args["output_gif"]:
-        output_gif(args, real_time_maps, f"{args['output_gif_path']}_real_time.gif")
+        output_gif(args, scale_maps(real_time_maps), f"{args['output_gif_path']}_real_time.gif")
         if len(needle_maps) > 0:
-            output_gif(args, needle_maps, f"{args['output_gif_path']}_needle.gif")
+            output_gif(args, scale_maps(needle_maps), f"{args['output_gif_path']}_needle.gif")
     if args["output_hdf5"]:
         output_hdf5(real_time_maps)
+
+
+def scale_maps(maps, min_z, max_z):
+    """Scale z values to be between 0 and 1 (for visualization)"""
+    scaled_maps = []
+    for i in range(len(maps)):
+        scaled_maps.append((maps[i] - min_z) / (max_z - 1 - min_z))
+    return scaled_maps
 
 
 def get_needle_threshold(args, density_maps):
@@ -147,9 +152,8 @@ def temporal_auto_correlate(maps):
     stacked_maps = np.dstack(maps)
     nlags = int(min(10 * np.log10(stacked_maps.shape[2]), stacked_maps.shape[2] - 1))
     temporal_auto_correlations = np.zeros(shape=(stacked_maps.shape[0], stacked_maps.shape[1], nlags + 1))
-    for x in range(stacked_maps.shape[0]):
-        for y in range(stacked_maps.shape[1]):
-            temporal_auto_correlations[x, y, :] = statsmodels.tsa.stattools.acf(stacked_maps[x, y, :])
+    for x, y in product(range(stacked_maps.shape[0]), range(stacked_maps.shape[1])):
+        temporal_auto_correlations[x, y, :] = statsmodels.tsa.stattools.acf(stacked_maps[x, y, :])
     return temporal_auto_correlations
 
 

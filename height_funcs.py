@@ -26,23 +26,14 @@ import utils
 #     return 0
 
 
-def z_test(x, y, density_map, needle_threshold, slab_top_z, orig_center_x, orig_center_y, args):
-    cur = 0
-    is_in_tunnel = utils.is_in_circle(x + args["min_x_coord"],
-                                      y + args["min_y_coord"],
-                                      args["tunnel_radius_a"] / args["voxel_size_a"],
-                                      orig_center_x,
-                                      orig_center_y)
+def z_test(x, y, density_map, needle_threshold, slab_top_z, is_in_tunnel):
+    density_sum = 0
     for z in range(density_map.shape[2] - 1, -1, -1):
-        cur += density_map[x, y, z]
+        density_sum += density_map[x, y, z]
         if not is_in_tunnel and z < slab_top_z:
-            cur += 99999
-        if cur > needle_threshold:
+            density_sum += np.inf
+        if density_sum > needle_threshold:
             return z
-            # if cur > needle_threshold:
-            #     return min(max(z, slab_top_z), args["max_z_coord"])
-            # else:
-            #     return min(slab_top_z, args["max_z_coord"])
     return 0
 
 

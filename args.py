@@ -59,6 +59,10 @@ def parse_arguments():
                         help="Thickness of the NPC slab in angstrom. (Should be the same as specified in"
                              "the npc simulation configuration file).",
                         required=True)
+    parser.add_argument("--statistics-interval-ns",
+                        type=float,
+                        help="(Should be the same as specified in the npc simulation configuration file).",
+                        required=True)
     # ============== #
     # AFM PARAMETERS #
     # ============== #
@@ -96,7 +100,7 @@ def parse_arguments():
     # Z height functions:
     parser.add_argument("--z-func",
                         type=str,
-                        choices=["z_top", "z_sum", "z_fraction", "z_test"],
+                        choices=["z_test", "z_test2"],
                         required=True)
     parser.add_argument('--calc-needle-threshold',
                         action=argparse.BooleanOptionalAction,

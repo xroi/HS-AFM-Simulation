@@ -41,6 +41,14 @@ def visualize_auto_corr(acorrs):
     fig.show()
 
 
+def visualize_taus(taus):
+    fig = go.Figure()
+    fig.add_trace(go.Heatmap(z=taus))
+    fig.layout.height = 500
+    fig.layout.width = 500
+    fig.show()
+
+
 def make_bw_legend(height):
     fig = go.Figure()
     fig.add_trace(go.Heatmap(z=[[-int(height / 2), 0, int(height / 2)]],

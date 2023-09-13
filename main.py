@@ -1,11 +1,12 @@
 import h5py
 import numpy as np
-import statsmodels.api as statsmodels
+from itertools import product
+
 import height_funcs
 import args as arguments
 import utils
 import output
-from itertools import product
+import auto_corr
 
 """
 todo:
@@ -14,32 +15,99 @@ PROBLEM: if there is something above the membrane, it doesn't get detected. why?
 """
 
 
-def get_combined_density_map(time, args):
+def main():
+    args = arguments.parse_arguments()
+    print(args)
+
+    real_time_maps = get_real_time_maps(args)
+    needle_maps = get_needle_maps(real_time_maps, args)
+    # todo (working but not used)
+    real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 3)
+    taus = auto_corr.calculate_taus(real_time_acorrs)
+    output.visualize_taus(taus)
+    # output.visualize_auto_corr(real_time_acorrs)
+    # needle_acorrs = temporal_auto_correlate(real_time_maps)
+
+    if args["output_gif"]:
+        output.output_gif(args, scale_maps(real_time_maps, args["min_z_coord"], args["max_z_coord"]),
+                          f"{args['output_gif_path']}_real_time.gif")
+        if len(needle_maps) > 0:
+            output.output_gif(args, scale_maps(needle_maps, args["min_z_coord"], args["max_z_coord"]),
+                              f"{args['output_gif_path']}_needle.gif")
+    if args["output_hdf5"]:
+        output.output_hdf5(real_time_maps)
+
+
+def get_real_time_maps(args):
+    density_maps = []
+    real_time_maps = []
+    for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
+        print(f"{i}")
+        density_maps.append(get_individual_counts_maps(i, args))
+    needle_threshold = get_needle_threshold(args, density_maps)
+    original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+    slab_top_z = int(original_shape[2] / 2 + args["slab_thickness_a"] / args["voxel_size_a"])
+    center_x = int(original_shape[0] / 2)
+    center_y = int(original_shape[1] / 2)
+    for i, density_map in enumerate(density_maps):
+        height_map = get_height_map(density_map, needle_threshold, slab_top_z, center_x, center_y, args)
+        print(i)
+        real_time_maps.append(height_map)
+    return real_time_maps
+
+
+def get_combined_counts_map(time, args):
     """
-    Combines density maps of all floaters in a HDF5 file, by summing them up.
+    Combines counts maps of all floaters in a HDF5 file, by summing them up.
     """
     x_size = args["max_x_coord"] - args["min_x_coord"]
     y_size = args["max_y_coord"] - args["min_y_coord"]
     z_size = args["max_z_coord"] - args["min_z_coord"]
-    combined_density_map = np.zeros(shape=(x_size, y_size, z_size))
+
     with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
         data = f["floater_xyz_hist"]
+        combined_counts_map = np.zeros(shape=(x_size, y_size, z_size))
         for key in data.keys():
-            combined_density_map += np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
-                                    args["min_y_coord"]:args["max_y_coord"],
-                                    args["min_z_coord"]:args["max_z_coord"]]
-    return combined_density_map
+            combined_counts_map += np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
+                                   args["min_y_coord"]:args["max_y_coord"],
+                                   args["min_z_coord"]:args["max_z_coord"]]
+    return combined_counts_map
 
 
-def get_height_map(density_map, height_func, needle_threshold, slab_top_z, center_x, center_y, args):
-    height_map = np.zeros(shape=density_map.shape[:2])
-    for x, y in product(range(density_map.shape[0]), range(density_map.shape[1])):
+def get_individual_counts_maps(time, args):
+    """
+    return 4d array of size (size_x, size_y, size_z, floaters_amount)
+    """
+    x_size = args["max_x_coord"] - args["min_x_coord"]
+    y_size = args["max_y_coord"] - args["min_y_coord"]
+    z_size = args["max_z_coord"] - args["min_z_coord"]
+
+    with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
+        data = f["floater_xyz_hist"]
+        individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(data.keys())))
+        for i, key in enumerate(data.keys()):
+            individual_counts_maps[:, :, :, i] = np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
+                                                 args["min_y_coord"]:args["max_y_coord"],
+                                                 args["min_z_coord"]:args["max_z_coord"]]
+    return individual_counts_maps
+
+
+def get_height_map(counts_maps, needle_threshold, slab_top_z, center_x, center_y, args):
+    summed_counts_maps = np.sum(counts_maps, axis=3)
+    density_map = counts_maps / (args["interval_ns"] / args["statistics_interval_ns"])
+    height_map = np.zeros(shape=counts_maps.shape[:2])
+    for x, y in product(range(counts_maps.shape[0]), range(counts_maps.shape[1])):
         is_in_tunnel = utils.is_in_circle(x + args["min_x_coord"],
                                           y + args["min_y_coord"],
                                           args["tunnel_radius_a"] / args["voxel_size_a"],
                                           center_x,
                                           center_y)
-        height_map[x, y] = height_func(x, y, density_map, needle_threshold, slab_top_z, is_in_tunnel)
+        height_map[x, y] = height_funcs.height_func_wrapper(args["z_func"], x, y, counts_maps,
+                                                            summed_counts_maps,
+                                                            density_map,
+                                                            needle_threshold,
+                                                            slab_top_z,
+                                                            is_in_tunnel, args)
     return height_map
 
 
@@ -89,27 +157,6 @@ def get_hdf5_size(filename):
         return arr.shape
 
 
-def main():
-    args = arguments.parse_arguments()
-    print(args)
-
-    real_time_maps = get_real_time_maps(args)
-    needle_maps = get_needle_maps(real_time_maps, args)
-    # todo (working but not used)
-    real_time_acorrs = temporal_auto_correlate(real_time_maps, 1)
-    output.visualize_auto_corr(real_time_acorrs)
-    # needle_acorrs = temporal_auto_correlate(real_time_maps)
-
-    if args["output_gif"]:
-        output.output_gif(args, scale_maps(real_time_maps, args["min_z_coord"], args["max_z_coord"]),
-                          f"{args['output_gif_path']}_real_time.gif")
-        if len(needle_maps) > 0:
-            output.output_gif(args, scale_maps(needle_maps, args["min_z_coord"], args["max_z_coord"]),
-                              f"{args['output_gif_path']}_needle.gif")
-    if args["output_hdf5"]:
-        output.output_hdf5(real_time_maps)
-
-
 def scale_maps(maps, min_z, max_z):
     """Scale z values to be between 0 and 1 (for visualization)"""
     scaled_maps = []
@@ -125,38 +172,6 @@ def get_needle_threshold(args, density_maps):
         return threshold
     else:
         return args["needle_custom_threshold"]
-
-
-def get_real_time_maps(args):
-    density_maps = []
-    real_time_maps = []
-    height_func = height_funcs.get_height_func(args["z_func"])
-    for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
-        print(f"{i}")
-        density_maps.append(get_combined_density_map(i, args))
-    needle_threshold = get_needle_threshold(args, density_maps)
-    original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
-    slab_top_z = int(original_shape[2] / 2 + args["slab_thickness_a"] / args["voxel_size_a"])
-    center_x = int(original_shape[0] / 2)
-    center_y = int(original_shape[1] / 2)
-    for i, density_map in enumerate(density_maps):
-        height_map = get_height_map(density_map, height_func, needle_threshold, slab_top_z, center_x, center_y, args)
-        real_time_maps.append(height_map)
-    return real_time_maps
-
-
-def temporal_auto_correlate(maps, window_size):
-    """
-    Calculates the temporal auto correlation of each pixel with itself over different time lags.
-    """
-    stacked_maps = np.dstack(maps)
-    nlags = int(min(10 * np.log10(stacked_maps.shape[2]), stacked_maps.shape[2] - 1))
-    temporal_auto_correlations = np.zeros(
-        shape=(stacked_maps.shape[0] - window_size + 1, stacked_maps.shape[1] - window_size + 1, nlags + 1))
-    for x, y in product(range(temporal_auto_correlations.shape[0]), range(temporal_auto_correlations.shape[1])):
-        vec = np.median(stacked_maps[x:x + window_size, y:y + window_size, :], axis=(0, 1))
-        temporal_auto_correlations[x, y, :] = statsmodels.tsa.stattools.acf(vec)
-    return temporal_auto_correlations
 
 
 if __name__ == "__main__":

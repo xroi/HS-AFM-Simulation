@@ -26,20 +26,41 @@ import utils
 #     return 0
 
 
-def z_test(x, y, density_map, needle_threshold, slab_top_z, is_in_tunnel):
+def z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, is_in_tunnel):
     density_sum = 0
-    for z in range(density_map.shape[2] - 1, -1, -1):
-        density_sum += density_map[x, y, z]
+    for z in range(summed_counts_map.shape[2] - 1, -1, -1):
+        density_sum += summed_counts_map[x, y, z]
         # density_sum += utils.get_circle_median(density_map[:, :, z], x, y, 1)
-        if not is_in_tunnel and z < slab_top_z:
-            density_sum += np.inf
-        if density_sum > needle_threshold:
+        if (density_sum > needle_threshold) or (not is_in_tunnel and z < slab_top_z):
             return z
     return 0
 
 
-def get_height_func(name):
-    match name:
+def z_test2(x, y, density_map, needle_threshold, slab_top_z, is_in_tunnel):
+    # for z in range(density_map.shape[2] - 1, -1, -1):
+    #     count = 0
+    #     for i in range(density_map.shape[3]):
+    #         if np.random.binomial(1, density_map[x, y, z, i]):
+    #             count += 1
+    #     if (count > needle_threshold) or (not is_in_tunnel and z < slab_top_z):
+    #         return z
+    # return 0
+    temp = density_map[x, y, :, :]
+    temp = 1 - temp
+    mults = np.prod(temp, axis=1)
+    for z in range(density_map.shape[2] - 1, -1, -1):
+        count = 0
+        for i in range(density_map.shape[3]):
+            if np.random.binomial(1, 1 - mults[z]):
+                count += 1
+        if (count > needle_threshold) or (not is_in_tunnel and z < slab_top_z):
+            return z
+    return 0
+
+
+def height_func_wrapper(func_name, x, y, counts_maps, summed_counts_map, density_map, needle_threshold, slab_top_z,
+                        is_in_tunnel, args):
+    match func_name:
         # case "z_top":
         #     return z_top
         # case "z_sum":
@@ -47,4 +68,6 @@ def get_height_func(name):
         # case "z_fraction":
         #     return z_fraction
         case "z_test":
-            return z_test
+            return z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, is_in_tunnel)
+        case "z_test2":
+            return z_test2(x, y, density_map, needle_threshold, slab_top_z, is_in_tunnel)

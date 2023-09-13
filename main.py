@@ -96,7 +96,7 @@ def main():
     real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
     # todo (working but not used)
-    real_time_acorrs = temporal_auto_correlate(real_time_maps)
+    real_time_acorrs = temporal_auto_correlate(real_time_maps, 1)
     output.visualize_auto_corr(real_time_acorrs)
     # needle_acorrs = temporal_auto_correlate(real_time_maps)
 
@@ -145,15 +145,17 @@ def get_real_time_maps(args):
     return real_time_maps
 
 
-def temporal_auto_correlate(maps):
+def temporal_auto_correlate(maps, window_size):
     """
     Calculates the temporal auto correlation of each pixel with itself over different time lags.
     """
     stacked_maps = np.dstack(maps)
     nlags = int(min(10 * np.log10(stacked_maps.shape[2]), stacked_maps.shape[2] - 1))
-    temporal_auto_correlations = np.zeros(shape=(stacked_maps.shape[0], stacked_maps.shape[1], nlags + 1))
-    for x, y in product(range(stacked_maps.shape[0]), range(stacked_maps.shape[1])):
-        temporal_auto_correlations[x, y, :] = statsmodels.tsa.stattools.acf(stacked_maps[x, y, :])
+    temporal_auto_correlations = np.zeros(
+        shape=(stacked_maps.shape[0] - window_size + 1, stacked_maps.shape[1] - window_size + 1, nlags + 1))
+    for x, y in product(range(temporal_auto_correlations.shape[0]), range(temporal_auto_correlations.shape[1])):
+        vec = np.median(stacked_maps[x:x + window_size, y:y + window_size, :], axis=(0, 1))
+        temporal_auto_correlations[x, y, :] = statsmodels.tsa.stattools.acf(vec)
     return temporal_auto_correlations
 
 

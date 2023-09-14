@@ -8,12 +8,6 @@ import utils
 import output
 import auto_corr
 
-"""
-todo:
-refactor needed with height funcs
-PROBLEM: if there is something above the membrane, it doesn't get detected. why? should the membrane have density?
-"""
-
 
 def main():
     args = arguments.parse_arguments()
@@ -22,6 +16,9 @@ def main():
     real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
     # todo (working but not used)
+    real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 1)
+    taus = auto_corr.calculate_taus(real_time_acorrs)
+    output.visualize_taus(taus)
     real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 3)
     taus = auto_corr.calculate_taus(real_time_acorrs)
     output.visualize_taus(taus)
@@ -39,18 +36,18 @@ def main():
 
 
 def get_real_time_maps(args):
-    density_maps = []
+    counts_fgs_maps = []
     real_time_maps = []
     for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
         print(f"{i}")
-        density_maps.append(get_individual_counts_maps(i, args))
-    needle_threshold = get_needle_threshold(args, density_maps)
+        counts_fgs_maps.append(get_individual_counts_maps(i, args))
+    needle_threshold = get_needle_threshold(args, counts_fgs_maps)
     original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
     slab_top_z = int(original_shape[2] / 2 + args["slab_thickness_a"] / args["voxel_size_a"])
     center_x = int(original_shape[0] / 2)
     center_y = int(original_shape[1] / 2)
-    for i, density_map in enumerate(density_maps):
-        height_map = get_height_map(density_map, needle_threshold, slab_top_z, center_x, center_y, args)
+    for i, counts_fgs_map in enumerate(counts_fgs_maps):
+        height_map = get_height_map(counts_fgs_map, needle_threshold, slab_top_z, center_x, center_y, args)
         print(i)
         real_time_maps.append(height_map)
     return real_time_maps
@@ -92,18 +89,18 @@ def get_individual_counts_maps(time, args):
     return individual_counts_maps
 
 
-def get_height_map(counts_maps, needle_threshold, slab_top_z, center_x, center_y, args):
-    summed_counts_maps = np.sum(counts_maps, axis=3)
-    density_map = counts_maps / (args["interval_ns"] / args["statistics_interval_ns"])
-    height_map = np.zeros(shape=counts_maps.shape[:2])
-    for x, y in product(range(counts_maps.shape[0]), range(counts_maps.shape[1])):
+def get_height_map(counts_fgs_map, needle_threshold, slab_top_z, center_x, center_y, args):
+    summed_counts_map = np.sum(counts_fgs_map, axis=3)
+    density_map = counts_fgs_map / (args["interval_ns"] / args["statistics_interval_ns"])
+    height_map = np.zeros(shape=counts_fgs_map.shape[:2])
+    for x, y in product(range(counts_fgs_map.shape[0]), range(counts_fgs_map.shape[1])):
         is_in_tunnel = utils.is_in_circle(x + args["min_x_coord"],
                                           y + args["min_y_coord"],
                                           args["tunnel_radius_a"] / args["voxel_size_a"],
                                           center_x,
                                           center_y)
-        height_map[x, y] = height_funcs.height_func_wrapper(args["z_func"], x, y, counts_maps,
-                                                            summed_counts_maps,
+        height_map[x, y] = height_funcs.height_func_wrapper(args["z_func"], x, y, counts_fgs_map,
+                                                            summed_counts_map,
                                                             density_map,
                                                             needle_threshold,
                                                             slab_top_z,

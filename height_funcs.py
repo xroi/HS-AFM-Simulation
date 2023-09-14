@@ -27,11 +27,10 @@ import utils
 
 
 def z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, is_in_tunnel):
-    density_sum = 0
+    counts_sum = 0
     for z in range(summed_counts_map.shape[2] - 1, -1, -1):
-        density_sum += summed_counts_map[x, y, z]
-        # density_sum += utils.get_circle_median(density_map[:, :, z], x, y, 1)
-        if (density_sum > needle_threshold) or (not is_in_tunnel and z < slab_top_z):
+        counts_sum += summed_counts_map[x, y, z]
+        if (counts_sum > needle_threshold) or (not is_in_tunnel and z < slab_top_z):
             return z
     return 0
 

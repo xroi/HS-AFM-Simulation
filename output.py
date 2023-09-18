@@ -41,12 +41,33 @@ def visualize_auto_corr(acorrs):
     fig.show()
 
 
-def visualize_taus(taus):
+def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, center_y, dtick):
     fig = go.Figure()
-    fig.add_trace(go.Heatmap(z=taus))
+    fig.add_trace(go.Heatmap(z=taus, colorbar={"title": 'Tau'}))
     fig.layout.height = 500
     fig.layout.width = 500
+    fig.update_layout(xaxis={
+        "tickmode": 'array',
+        "tickvals": [i for i in range(int(taus.shape[0]))],
+        "ticktext": [taus_tick_val(i, voxel_size, center_x, dtick) for i in
+                     range(int(min_x), int(max_x))]
+    }, yaxis={
+        "tickmode": 'array',
+        "tickvals": [i for i in range(int(taus.shape[1]))],
+        "ticktext": [taus_tick_val(i, voxel_size, center_y, dtick) for i in
+                     range(int(min_y), int(max_y))]
+    })
+    fig.update_layout(title="",
+                      yaxis={"title": 'Distance from center (A)'},
+                      xaxis={"title"    : 'Distance from center (A)',
+                             "tickangle": 0}, )
     fig.show()
+
+
+def taus_tick_val(i, voxel_size, center, dtick):
+    if i % dtick != 0:
+        return ""
+    return str(int((i - center) * voxel_size))
 
 
 def make_bw_legend(height):

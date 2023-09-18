@@ -15,15 +15,8 @@ def main():
 
     real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
-    # todo (working but not used)
-    real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 1)
-    taus = auto_corr.calculate_taus(real_time_acorrs)
-    output.visualize_taus(taus)
-    real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 3)
-    taus = auto_corr.calculate_taus(real_time_acorrs)
-    output.visualize_taus(taus)
-    # output.visualize_auto_corr(real_time_acorrs)
-    # needle_acorrs = temporal_auto_correlate(real_time_maps)
+
+    post_analysis(args, real_time_maps, needle_maps)
 
     if args["output_gif"]:
         output.output_gif(args, scale_maps(real_time_maps, args["min_z_coord"], args["max_z_coord"]),
@@ -33,6 +26,20 @@ def main():
                               f"{args['output_gif_path']}_needle.gif")
     if args["output_hdf5"]:
         output.output_hdf5(real_time_maps)
+
+
+def post_analysis(args, real_time_maps, needle_maps):
+    real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 1)
+    taus = auto_corr.calculate_taus(real_time_acorrs)
+    original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+    center_x = int(original_shape[0] / 2)
+    center_y = int(original_shape[1] / 2)
+    output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
+                          args["max_y_coord"], center_x, center_y, 10)
+    real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 3)
+    taus = auto_corr.calculate_taus(real_time_acorrs)
+    output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
+                          args["max_y_coord"], center_x, center_y, 10)
 
 
 def get_real_time_maps(args):
@@ -55,14 +62,14 @@ def get_real_time_maps(args):
 
 def get_combined_counts_map(time, args):
     """
-    Combines counts maps of all floaters in a HDF5 file, by summing them up.
+    Deprecated, Combines counts maps of all floaters in a HDF5 file, by summing them up.
     """
     x_size = args["max_x_coord"] - args["min_x_coord"]
     y_size = args["max_y_coord"] - args["min_y_coord"]
     z_size = args["max_z_coord"] - args["min_z_coord"]
 
     with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
-        data = f["floater_xyz_hist"]
+        data = f["fg_xyz_hist"]
         combined_counts_map = np.zeros(shape=(x_size, y_size, z_size))
         for key in data.keys():
             combined_counts_map += np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
@@ -80,7 +87,7 @@ def get_individual_counts_maps(time, args):
     z_size = args["max_z_coord"] - args["min_z_coord"]
 
     with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
-        data = f["floater_xyz_hist"]
+        data = f["fg_xyz_hist"]
         individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(data.keys())))
         for i, key in enumerate(data.keys()):
             individual_counts_maps[:, :, :, i] = np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
@@ -149,7 +156,7 @@ def get_times(args, size_x):
 
 def get_hdf5_size(filename):
     with h5py.File(filename, "r") as f:
-        data = f["floater_xyz_hist"]
+        data = f["fg_xyz_hist"]
         arr = np.array(data[list(data.keys())[0]])
         return arr.shape
 

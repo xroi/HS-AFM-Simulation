@@ -154,6 +154,10 @@ def parse_arguments():
                         type=str,
                         help="Path to output gif file.",
                         required=True)
+    parser.add_argument('--color-gif',
+                        action=argparse.BooleanOptionalAction,
+                        help="If true, outputs a colored gif. Otherwise the gif will be black and white.",
+                        required=True)
     parser.add_argument("--output_resolution_x",
                         type=int,
                         help="x axis Resolution of output gif in pixels. (Up-scaled from original height maps size)",

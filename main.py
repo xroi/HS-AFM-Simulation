@@ -22,11 +22,11 @@ def main():
         center_z = int(original_shape[0] / 2)
         output.output_gif(args, real_time_maps,
                           f"{args['output_gif_path']}_real_time.gif", center_z, args["min_z_coord"],
-                          args["max_z_coord"], color=True)
+                          args["max_z_coord"], args["color_gif"])
         if len(needle_maps) > 0:
             output.output_gif(args, needle_maps,
                               f"{args['output_gif_path']}_needle.gif", center_z, args["min_z_coord"],
-                              args["max_z_coord"], color=True)
+                              args["max_z_coord"], args["color_gif"])
     if args["output_hdf5"]:
         output.output_hdf5(real_time_maps)
 

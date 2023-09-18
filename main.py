@@ -15,15 +15,18 @@ def main():
 
     real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
-
-    post_analysis(args, real_time_maps, needle_maps)
+    # post_analysis(args, real_time_maps, needle_maps)
 
     if args["output_gif"]:
-        output.output_gif(args, scale_maps(real_time_maps, args["min_z_coord"], args["max_z_coord"]),
-                          f"{args['output_gif_path']}_real_time.gif")
+        original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+        center_z = int(original_shape[0] / 2)
+        output.output_gif(args, real_time_maps,
+                          f"{args['output_gif_path']}_real_time.gif", center_z, args["min_z_coord"],
+                          args["max_z_coord"], color=True)
         if len(needle_maps) > 0:
-            output.output_gif(args, scale_maps(needle_maps, args["min_z_coord"], args["max_z_coord"]),
-                              f"{args['output_gif_path']}_needle.gif")
+            output.output_gif(args, needle_maps,
+                              f"{args['output_gif_path']}_needle.gif", center_z, args["min_z_coord"],
+                              args["max_z_coord"], color=True)
     if args["output_hdf5"]:
         output.output_hdf5(real_time_maps)
 
@@ -159,14 +162,6 @@ def get_hdf5_size(filename):
         data = f["fg_xyz_hist"]
         arr = np.array(data[list(data.keys())[0]])
         return arr.shape
-
-
-def scale_maps(maps, min_z, max_z):
-    """Scale z values to be between 0 and 1 (for visualization)"""
-    scaled_maps = []
-    for i in range(len(maps)):
-        scaled_maps.append((maps[i] - min_z) / (max_z - 1 - min_z))
-    return scaled_maps
 
 
 def get_needle_threshold(args, density_maps):

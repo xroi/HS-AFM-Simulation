@@ -5,11 +5,31 @@ import plotly.graph_objects as go
 from itertools import product
 
 
-def output_gif(args, maps, filename):
+def output_gif(args, maps, filename, z_center, min_z, max_z, color=False):
+    """z_center is the real center"""
     images = []
     for height_map in maps:
-        im = Image.fromarray((np.flipud(height_map.T) * 255).astype(np.uint8)).resize(
-            (args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
+        if color:
+            scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
+            data = np.zeros((height_map.shape[0], height_map.shape[1], 3))
+            for x, y in product(range(height_map.shape[0]), range(height_map.shape[1])):
+                # Red is over center, blue is under center
+                if height_map[x][y] > z_center:
+                    data[x][y][0] = 1
+                    data[x][y][1] = 1 - scaled_map[x][y]
+                    data[x][y][2] = 1 - scaled_map[x][y]
+                else:
+                    data[x][y][0] = scaled_map[x][y]
+                    data[x][y][1] = scaled_map[x][y]
+                    data[x][y][2] = 1
+            for i in range(3):
+                data[:, :, i] = np.flipud(data[:, :, i].T)
+            im = Image.fromarray((data * 255).astype(np.uint8), 'RGB')
+        else:  # bw
+            # Scale z values to be between 0 and 1 (for visualization)
+            height_map = (height_map - min_z) / (max_z - 1 - min_z)
+            im = Image.fromarray((np.flipud(height_map.T) * 255).astype(np.uint8))
+        im = im.resize((args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
         images.append(im)
     images[0].save(filename, append_images=images[1:], save_all=True, duration=100, loop=0)
 

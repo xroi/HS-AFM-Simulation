@@ -15,7 +15,7 @@ def main():
 
     real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
-    # post_analysis(args, real_time_maps, needle_maps)
+    post_analysis(args, real_time_maps, needle_maps)
 
     if args["output_gif"]:
         original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")

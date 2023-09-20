@@ -39,10 +39,10 @@ def post_analysis(args, real_time_maps, needle_maps):
     center_y = int(original_shape[1] / 2)
     output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
                           args["max_y_coord"], center_x, center_y, 10)
-    real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 3)
-    taus = auto_corr.calculate_taus(real_time_acorrs)
-    output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
-                          args["max_y_coord"], center_x, center_y, 10)
+    # real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 3)
+    # taus = auto_corr.calculate_taus(real_time_acorrs)
+    # output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
+    #                       args["max_y_coord"], center_x, center_y, 10)
 
 
 def get_real_time_maps(args):
@@ -175,3 +175,4 @@ def get_needle_threshold(args, density_maps):
 
 if __name__ == "__main__":
     main()
+    # print(utils.get_coordinate_list(4.0, 12.0, 480.0, 150.0, 900.0))

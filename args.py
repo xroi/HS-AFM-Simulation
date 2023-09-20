@@ -63,6 +63,10 @@ def parse_arguments():
                         type=float,
                         help="(Should be the same as specified in the npc simulation configuration file).",
                         required=True)
+    parser.add_argument('--torus-slab',
+                        action=argparse.BooleanOptionalAction,
+                        help="Specified if the slab is a torus. should be the same as in the original simulation.",
+                        required=True)
     # ============== #
     # AFM PARAMETERS #
     # ============== #

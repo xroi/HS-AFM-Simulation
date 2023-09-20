@@ -54,6 +54,15 @@ def median_threshold(density_maps, r, frac):
     return np.median(vals) * frac  # todo this is usually 0.
 
 
+def get_torus_top_z(x, y, center_x, center_y, center_z, r, p):
+    if is_in_circle(x, y, r - p, center_x, center_y):
+        return 0
+    if not is_in_circle(x, y, r, center_x, center_y):
+        return center_z + p
+    point_r = np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
+    return int(np.sqrt(p ** 2 - (r - point_r) ** 2) + center_z)
+
+
 def torus_inner_radius(r, p, z):
     """
     :param r: radius from center of tube to center of torus ring

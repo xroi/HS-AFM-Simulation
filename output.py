@@ -3,6 +3,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from itertools import product
+import matplotlib.pyplot as plt
 
 
 def output_gif(args, maps, filename, z_center, min_z, max_z, color=False):
@@ -11,20 +12,22 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, color=False):
     for height_map in maps:
         if color:
             scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
-            data = np.zeros((height_map.shape[0], height_map.shape[1], 3))
-            for x, y in product(range(height_map.shape[0]), range(height_map.shape[1])):
-                # Red is over center, blue is under center
-                if height_map[x][y] > z_center:
-                    data[x][y][0] = 1
-                    data[x][y][1] = 1 - scaled_map[x][y]
-                    data[x][y][2] = 1 - scaled_map[x][y]
-                else:
-                    data[x][y][0] = scaled_map[x][y]
-                    data[x][y][1] = scaled_map[x][y]
-                    data[x][y][2] = 1
+            cm = plt.get_cmap('RdBu')
+            data = cm(scaled_map)
+            # data = np.zeros((height_map.shape[0], height_map.shape[1], 3))
+            # for x, y in product(range(height_map.shape[0]), range(height_map.shape[1])):
+            #     # Red is over center, blue is under center
+            #     if height_map[x][y] > z_center:
+            #         data[x][y][0] = 1
+            #         data[x][y][1] = np.sqrt(-scaled_map[x][y] + 1)
+            #         data[x][y][2] = np.sqrt(-scaled_map[x][y] + 1)
+            #     else:
+            #         data[x][y][0] = 1 - np.sqrt(-scaled_map[x][y] + 1)
+            #         data[x][y][1] = 1 - np.sqrt(-scaled_map[x][y] + 1)
+            #         data[x][y][2] = 1
             for i in range(3):
                 data[:, :, i] = np.flipud(data[:, :, i].T)
-            im = Image.fromarray((data * 255).astype(np.uint8), 'RGB')
+            im = Image.fromarray((data[:, :, :3] * 255).astype(np.uint8), 'RGB')
         else:  # bw
             # Scale z values to be between 0 and 1 (for visualization)
             height_map = (height_map - min_z) / (max_z - 1 - min_z)
@@ -63,7 +66,7 @@ def visualize_auto_corr(acorrs):
 
 def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, center_y, dtick):
     fig = go.Figure()
-    fig.add_trace(go.Heatmap(z=taus, colorbar={"title": 'Tau'}))
+    fig.add_trace(go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau'}))
     fig.layout.height = 500
     fig.layout.width = 500
     fig.update_layout(xaxis={

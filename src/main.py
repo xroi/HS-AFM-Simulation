@@ -64,22 +64,22 @@ def get_real_time_maps(args):
     return real_time_maps
 
 
-def get_combined_counts_map(time, args):
-    """
-    Deprecated, Combines counts Maps of all floaters in a HDF5 file, by summing them up.
-    """
-    x_size = args["max_x_coord"] - args["min_x_coord"]
-    y_size = args["max_y_coord"] - args["min_y_coord"]
-    z_size = args["max_z_coord"] - args["min_z_coord"]
-
-    with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
-        data = f["fg_xyz_hist"]
-        combined_counts_map = np.zeros(shape=(x_size, y_size, z_size))
-        for key in data.keys():
-            combined_counts_map += np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
-                                   args["min_y_coord"]:args["max_y_coord"],
-                                   args["min_z_coord"]:args["max_z_coord"]]
-    return combined_counts_map
+# def get_combined_counts_map(time, args):
+#     """
+#     Deprecated, Combines counts Maps of all floaters in a HDF5 file, by summing them up.
+#     """
+#     x_size = args["max_x_coord"] - args["min_x_coord"]
+#     y_size = args["max_y_coord"] - args["min_y_coord"]
+#     z_size = args["max_z_coord"] - args["min_z_coord"]
+#
+#     with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
+#         combined_counts_map = np.zeros(shape=(x_size, y_size, z_size))
+#         data = f["fg_xyz_hist"]
+#         for key in data.keys():
+#             combined_counts_map += np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
+#                                    args["min_y_coord"]:args["max_y_coord"],
+#                                    args["min_z_coord"]:args["max_z_coord"]]
+#     return combined_counts_map
 
 
 def get_individual_counts_maps(time, args):
@@ -91,13 +91,21 @@ def get_individual_counts_maps(time, args):
     z_size = args["max_z_coord"] - args["min_z_coord"]
 
     with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
-        data = f["fg_xyz_hist"]
-        individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(data.keys())))
-        for i, key in enumerate(data.keys()):
-            individual_counts_maps[:, :, :, i] = np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
-                                                 args["min_y_coord"]:args["max_y_coord"],
-                                                 args["min_z_coord"]:args["max_z_coord"]]
-    return individual_counts_maps
+        fg_data = f["fg_xyz_hist"]
+        fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(fg_data.keys())))
+        for i, key in enumerate(fg_data.keys()):
+            fg_individual_counts_maps[:, :, :, i] = np.array(fg_data[key])[
+                                                    args["min_x_coord"]:args["max_x_coord"],
+                                                    args["min_y_coord"]:args["max_y_coord"],
+                                                    args["min_z_coord"]:args["max_z_coord"]]
+        floater_data = f["floater_xyz_hist"]
+        floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
+        for i, key in enumerate(floater_data.keys()):
+            floater_individual_counts_maps[:, :, :, i] = np.array(floater_data[key])[
+                                                         args["min_x_coord"]:args["max_x_coord"],
+                                                         args["min_y_coord"]:args["max_y_coord"],
+                                                         args["min_z_coord"]:args["max_z_coord"]]
+    return np.append(fg_individual_counts_maps, floater_individual_counts_maps, axis=3)
 
 
 def get_height_map(counts_fgs_map, needle_threshold, center_x, center_y, center_z, args):
@@ -178,5 +186,7 @@ def get_needle_threshold(args, density_maps):
 
 
 if __name__ == "__main__":
-    main()
+    # main()
     # print((utils.get_coordinate_list(4, 12, 480.0, 150.0, 900.0)))
+    # output.make_bw_legend(70)
+    output.make_matplot_legend(700, 'RdBu')

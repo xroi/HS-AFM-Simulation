@@ -31,7 +31,7 @@ def z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, z_center, voxe
 
     counts_sum = 0
     for z in range(summed_counts_map.shape[2] - 1, -1, -1):
-        counts_sum += summed_counts_map[x, y, z]  # * 1 / np.abs(z_center * voxel_size - z * voxel_size)
+        counts_sum += summed_counts_map[x, y, z] / (np.abs(z_center - z))
         if (counts_sum > needle_threshold) or z < slab_top_z:
             return z
     return 0

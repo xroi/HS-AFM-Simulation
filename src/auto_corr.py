@@ -45,6 +45,6 @@ def calculate_taus(acorrs):
                                           full_output=False, p0=(1.0, 1.0, 1.0), maxfev=5000)
         A, tau, C = opt_params
         taus[x, y] = tau
-        if tau > 10:  # todo temp
-            taus[x, y] = -1
+        # if tau > 20:  # todo temp
+        #     taus[x, y] = -1
     return taus

@@ -1,4 +1,6 @@
 import argparse
+import sys
+import shlex
 
 
 def validate_args(args):
@@ -19,6 +21,7 @@ def parse_arguments():
         prog="HS-AFM-Simulation",
         description="A model of high speed atomic force microscopy, based on density Maps from imp's nuclear pore "
                     "complex transport module.")
+
     # ========================= #
     # NPC SIMULATION PARAMETERS #
     # ========================= #
@@ -178,7 +181,9 @@ def parse_arguments():
                         type=str,
                         help="Path to output hdf5 file.",
                         required=True)
-
-    args = vars(parser.parse_args())
+    if sys.argv[1].startswith('@'):
+        args = vars(parser.parse_args(shlex.split(open(sys.argv[1][1:]).read())))
+    else:
+        args = vars(parser.parse_args())
     validate_args(args)
     return args

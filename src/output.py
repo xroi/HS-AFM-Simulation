@@ -2,8 +2,8 @@ from PIL import Image
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from itertools import product
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 def output_gif(args, maps, filename, z_center, min_z, max_z, color=False):
@@ -93,12 +93,25 @@ def taus_tick_val(i, voxel_size, center, dtick):
     return str(int((i - center) * voxel_size))
 
 
-def make_bw_legend(height):
+def make_3_color_legend(height, bottom_color, center_color, top_color):
     fig = go.Figure()
     fig.add_trace(go.Heatmap(z=[[-int(height / 2), 0, int(height / 2)]],
                              colorscale=[
-                                 [0, "rgb(0, 0, 0)"],
-                                 [0.5, "rgb(127, 127, 127)"],
-                                 [1, "rgb(255, 255, 255)"]]
+                                 [0, bottom_color],
+                                 [0.5, center_color],
+                                 [1, top_color]]
                              ))
     fig.show()
+
+
+def make_bw_legend(height):
+    make_3_color_legend(height, "rgb(0, 0, 0)", "rgb(127, 127, 127)", "rgb(255, 255, 255)")
+
+
+def make_matplot_legend(height, color_map):
+    ax = plt.subplot()
+    im = ax.imshow(np.arange(-int(height / 2), int(height / 2), 10).reshape(int(height / 10), 1), cmap=color_map)
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="200%", pad=1)
+    plt.colorbar(im, cax=cax)
+    plt.show()

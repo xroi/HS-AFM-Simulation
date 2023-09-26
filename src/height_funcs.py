@@ -26,15 +26,20 @@ import utils
 #     return 0
 
 
-def z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, z_center, voxel_size):
-    """x, y, slab_top_z should be in px, z_center_delta in angstrom"""
+def z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, z_center, z_min):
+    """x, y, slab_top_z, z_center, z_min, should be in px"""
 
     counts_sum = 0
     for z in range(summed_counts_map.shape[2] - 1, -1, -1):
-        counts_sum += summed_counts_map[x, y, z] / (np.abs(z_center - z))
+        counts_sum += summed_counts_map[x, y, z] * get_weight(np.abs(z_center - (z + z_min)),
+                                                              summed_counts_map.shape[2])
         if (counts_sum > needle_threshold) or z < slab_top_z:
             return z
     return 0
+
+
+def get_weight(dist_from_cent, max_z):
+    return ((max_z / 2) - dist_from_cent) / (max_z / 2)
 
 # def z_test2(x, y, density_map, needle_threshold, slab_top_z):
 #     temp = density_map[x, y, :, :]

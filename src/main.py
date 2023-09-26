@@ -126,7 +126,7 @@ def get_height_map(counts_fgs_map, needle_threshold, center_x, center_y, center_
                                                   center_y) else center_z * (args["slab_thickness_a"] / 2) / args[
                 "voxel_size_a"]
         height_map[x, y] = height_funcs.z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, center_z,
-                                               args["voxel_size_a"])
+                                               args["min_z_coord"])
     return height_map
 
 
@@ -186,7 +186,7 @@ def get_needle_threshold(args, density_maps):
 
 
 if __name__ == "__main__":
-    # main()
+    main()
     # print((utils.get_coordinate_list(4, 12, 480.0, 150.0, 900.0)))
     # output.make_bw_legend(70)
-    output.make_matplot_legend(700, 'RdBu')
+    # output.make_matplot_legend(700, 'RdBu')

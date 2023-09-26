@@ -66,7 +66,7 @@ def get_real_time_maps(args):
 
 def get_combined_counts_map(time, args):
     """
-    Deprecated, Combines counts maps of all floaters in a HDF5 file, by summing them up.
+    Deprecated, Combines counts Maps of all floaters in a HDF5 file, by summing them up.
     """
     x_size = args["max_x_coord"] - args["min_x_coord"]
     y_size = args["max_y_coord"] - args["min_y_coord"]
@@ -117,17 +117,14 @@ def get_height_map(counts_fgs_map, needle_threshold, center_x, center_y, center_
             slab_top_z = -1 if utils.is_in_circle(x, y, args["tunnel_radius_a"] / args["voxel_size_a"], center_x,
                                                   center_y) else center_z * (args["slab_thickness_a"] / 2) / args[
                 "voxel_size_a"]
-        height_map[x, y] = height_funcs.height_func_wrapper(args["z_func"], x, y, counts_fgs_map,
-                                                            summed_counts_map,
-                                                            density_map,
-                                                            needle_threshold,
-                                                            slab_top_z)
+        height_map[x, y] = height_funcs.z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, center_z,
+                                               args["voxel_size_a"])
     return height_map
 
 
 def get_needle_maps(real_time_maps, args):
     """
-    Given real time maps, calculates height maps from the AFM needle 'point of view', i.e. according to its speed.
+    Given real time Maps, calculates height Maps from the AFM needle 'point of view', i.e. according to its speed.
     The real time map resolution affects this, since for each pixel, the time floors to the most recent image.
     """
     size_x = real_time_maps[0].shape[0]
@@ -182,4 +179,4 @@ def get_needle_threshold(args, density_maps):
 
 if __name__ == "__main__":
     main()
-    # print(utils.get_coordinate_list(4.0, 12.0, 480.0, 150.0, 900.0))
+    # print((utils.get_coordinate_list(4, 12, 480.0, 150.0, 900.0)))

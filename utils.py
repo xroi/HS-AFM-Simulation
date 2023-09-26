@@ -77,12 +77,13 @@ def torus_inner_radius(r, p, z):
 def get_coordinate_list(cylinder_layers, fg_per_layer, r, p, bounding_box_size_z):
     """for anchoring fgs on torus."""
     coordinates = []
-    for i in np.arange(0.0, r + 0.01, r / (cylinder_layers - 1)):
-        inner_r = torus_inner_radius(r, p, p - i)
+    for i in range(cylinder_layers):
+        theta1 = np.pi * i / (cylinder_layers - 1) - (np.pi / 2)
+        z = p * np.sin(theta1)
+        inner_r = torus_inner_radius(r, p, z)
         for j in range(int(fg_per_layer)):
-            theta = 2.0 * np.pi * j / fg_per_layer
-            x = inner_r * np.cos(theta)
-            y = inner_r * np.sin(theta)
-            z = i + (bounding_box_size_z / 2) - p
+            theta2 = 2.0 * np.pi * j / fg_per_layer
+            x = inner_r * np.cos(theta2)
+            y = inner_r * np.sin(theta2)
             coordinates.append([x, y, z])
     return coordinates

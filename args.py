@@ -17,7 +17,7 @@ def validate_args(args):
 def parse_arguments():
     parser = argparse.ArgumentParser(
         prog="HS-AFM-Simulation",
-        description="A model of high speed atomic force microscopy, based on density maps from imp's nuclear pore "
+        description="A model of high speed atomic force microscopy, based on density Maps from imp's nuclear pore "
                     "complex transport module.")
     # ========================= #
     # NPC SIMULATION PARAMETERS #
@@ -164,11 +164,11 @@ def parse_arguments():
                         required=True)
     parser.add_argument("--output_resolution_x",
                         type=int,
-                        help="x axis Resolution of output gif in pixels. (Up-scaled from original height maps size)",
+                        help="x axis Resolution of output gif in pixels. (Up-scaled from original height Maps size)",
                         required=True)
     parser.add_argument("--output_resolution_y",
                         type=int,
-                        help="y axis Resolution of output gif in pixels. (Up-scaled from original height maps size)",
+                        help="y axis Resolution of output gif in pixels. (Up-scaled from original height Maps size)",
                         required=True)
     parser.add_argument('--output-hdf5',
                         action=argparse.BooleanOptionalAction,

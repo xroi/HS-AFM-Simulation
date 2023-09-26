@@ -26,15 +26,15 @@ import utils
 #     return 0
 
 
-def z_test(x, y, summed_counts_map, needle_threshold, slab_top_z):
-    """top z in pixels"""
+def z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, z_center, voxel_size):
+    """x, y, slab_top_z should be in px, z_center_delta in angstrom"""
+
     counts_sum = 0
     for z in range(summed_counts_map.shape[2] - 1, -1, -1):
-        counts_sum += summed_counts_map[x, y, z]
+        counts_sum += summed_counts_map[x, y, z]  # * 1 / np.abs(z_center * voxel_size - z * voxel_size)
         if (counts_sum > needle_threshold) or z < slab_top_z:
             return z
     return 0
-
 
 # def z_test2(x, y, density_map, needle_threshold, slab_top_z):
 #     temp = density_map[x, y, :, :]
@@ -50,15 +50,15 @@ def z_test(x, y, summed_counts_map, needle_threshold, slab_top_z):
 #     return 0
 
 
-def height_func_wrapper(func_name, x, y, counts_maps, summed_counts_map, density_map, needle_threshold, slab_top_z):
-    match func_name:
-        # case "z_top":
-        #     return z_top
-        # case "z_sum":
-        #     return z_sum
-        # case "z_fraction":
-        #     return z_fraction
-        case "z_test":
-            return z_test(x, y, summed_counts_map, needle_threshold, slab_top_z)
-        # case "z_test2":
-        #     return z_test2(x, y, density_map, needle_threshold, slab_top_z)
+# def height_func_wrapper(func_name, x, y, counts_maps, summed_counts_map, density_map, needle_threshold, slab_top_z):
+#     match func_name:
+#         # case "z_top":
+#         #     return z_top
+#         # case "z_sum":
+#         #     return z_sum
+#         # case "z_fraction":
+#         #     return z_fraction
+#         case "z_test":
+#             return z_test(x, y, summed_counts_map, needle_threshold, slab_top_z)
+#         # case "z_test2":
+#         #     return z_test2(x, y, density_map, needle_threshold, slab_top_z)

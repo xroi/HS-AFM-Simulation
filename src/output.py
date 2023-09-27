@@ -8,6 +8,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def output_gif(args, maps, filename, z_center, min_z, max_z, color=False):
     """z_center is the real center"""
+    maps = np.array(maps) + min_z
     images = []
     for height_map in maps:
         if color:

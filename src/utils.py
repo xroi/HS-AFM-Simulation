@@ -37,6 +37,10 @@ def get_circle_median(arr, x, y, r):
     return np.median(get_circle_mask(arr, x, y, r))
 
 
+def get_circle_mean(arr, x, y, r):
+    return np.mean(get_circle_mask(arr, x, y, r))
+
+
 def is_in_circle(x, y, r, center_x, center_y):
     return np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2) < r
 
@@ -54,13 +58,13 @@ def median_threshold(density_maps, r, frac):
     return np.median(vals) * frac  # todo this is usually 0.
 
 
-def get_torus_top_z(x, y, center_x, center_y, center_z, r, p):
-    if is_in_circle(x, y, r - p, center_x, center_y):
+def get_torus_top_z(x, y, centers, r, p):
+    if is_in_circle(x, y, r - p, centers[0], centers[1]):
         return 0
-    if not is_in_circle(x, y, r, center_x, center_y):
-        return center_z + p
-    point_r = np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
-    return int(np.sqrt(p ** 2 - (r - point_r) ** 2) + center_z)
+    if not is_in_circle(x, y, r, centers[0], centers[1]):
+        return centers[2] + p
+    point_r = np.sqrt((x - centers[0]) ** 2 + (y - centers[1]) ** 2)
+    return int(np.sqrt(p ** 2 - (r - point_r) ** 2) + centers[2])
 
 
 def torus_inner_radius(r, p, z):

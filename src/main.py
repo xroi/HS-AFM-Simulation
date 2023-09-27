@@ -15,7 +15,7 @@ def main():
 
     real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
-    post_analysis(args, real_time_maps, needle_maps)
+    # post_analysis(args, real_time_maps, needle_maps)
 
     if args["output_gif"]:
         original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
@@ -46,19 +46,16 @@ def post_analysis(args, real_time_maps, needle_maps):
 
 
 def get_real_time_maps(args):
-    counts_fgs_maps = []
+    counts_maps = []
     real_time_maps = []
     for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
         print(f"{i}")
-        counts_fgs_maps.append(get_individual_counts_maps(i, args))
-    needle_threshold = get_needle_threshold(args, counts_fgs_maps)
+        counts_maps.append(get_individual_counts_maps(i, args))
+    needle_threshold = get_needle_threshold(args, counts_maps)
     original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
-    # slab_top_z = int(original_shape[2] / 2 + args["slab_thickness_a"] / args["voxel_size_a"])
-    center_x = int(original_shape[0] / 2)
-    center_y = int(original_shape[1] / 2)
-    center_z = int(original_shape[2] / 2)
-    for i, counts_fgs_map in enumerate(counts_fgs_maps):
-        height_map = get_height_map(counts_fgs_map, needle_threshold, center_x, center_y, center_z, args)
+    centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
+    for i, counts_map in enumerate(counts_maps):
+        height_map = height_funcs.z_test2(counts_map, needle_threshold, centers, args)
         print(i)
         real_time_maps.append(height_map)
     return real_time_maps
@@ -98,36 +95,15 @@ def get_individual_counts_maps(time, args):
                                                     args["min_x_coord"]:args["max_x_coord"],
                                                     args["min_y_coord"]:args["max_y_coord"],
                                                     args["min_z_coord"]:args["max_z_coord"]]
-        floater_data = f["floater_xyz_hist"]
-        floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
-        for i, key in enumerate(floater_data.keys()):
-            floater_individual_counts_maps[:, :, :, i] = np.array(floater_data[key])[
-                                                         args["min_x_coord"]:args["max_x_coord"],
-                                                         args["min_y_coord"]:args["max_y_coord"],
-                                                         args["min_z_coord"]:args["max_z_coord"]]
-    return np.append(fg_individual_counts_maps, floater_individual_counts_maps, axis=3)
-
-
-def get_height_map(counts_fgs_map, needle_threshold, center_x, center_y, center_z, args):
-    summed_counts_map = np.sum(counts_fgs_map, axis=3)
-    density_map = counts_fgs_map / (args["interval_ns"] / args["statistics_interval_ns"])
-    height_map = np.zeros(shape=counts_fgs_map.shape[:2])
-    for x, y in product(range(counts_fgs_map.shape[0]), range(counts_fgs_map.shape[1])):
-        if args["torus_slab"]:
-            slab_top_z = utils.get_torus_top_z(x,
-                                               y,
-                                               center_x,
-                                               center_y,
-                                               center_z,
-                                               args["tunnel_radius_a"] / args["voxel_size_a"],
-                                               (args["slab_thickness_a"] / args["voxel_size_a"]) / 2)
-        else:
-            slab_top_z = -1 if utils.is_in_circle(x, y, args["tunnel_radius_a"] / args["voxel_size_a"], center_x,
-                                                  center_y) else center_z * (args["slab_thickness_a"] / 2) / args[
-                "voxel_size_a"]
-        height_map[x, y] = height_funcs.z_test(x, y, summed_counts_map, needle_threshold, slab_top_z, center_z,
-                                               args["min_z_coord"])
-    return height_map
+    #     floater_data = f["floater_xyz_hist"]
+    #     floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
+    #     for i, key in enumerate(floater_data.keys()):
+    #         floater_individual_counts_maps[:, :, :, i] = np.array(floater_data[key])[
+    #                                                      args["min_x_coord"]:args["max_x_coord"],
+    #                                                      args["min_y_coord"]:args["max_y_coord"],
+    #                                                      args["min_z_coord"]:args["max_z_coord"]]
+    # return np.append(fg_individual_counts_maps, floater_individual_counts_maps, axis=3)
+    return fg_individual_counts_maps
 
 
 def get_needle_maps(real_time_maps, args):
@@ -135,6 +111,8 @@ def get_needle_maps(real_time_maps, args):
     Given real time Maps, calculates height Maps from the AFM needle 'point of view', i.e. according to its speed.
     The real time map resolution affects this, since for each pixel, the time floors to the most recent image.
     """
+    if len(real_time_maps) <= 1:
+        return []
     size_x = real_time_maps[0].shape[0]
     size_y = real_time_maps[0].shape[1]
     time_per_line, time_per_pixel = get_times(args, size_x)
@@ -189,4 +167,4 @@ if __name__ == "__main__":
     main()
     # print((utils.get_coordinate_list(4, 12, 480.0, 150.0, 900.0)))
     # output.make_bw_legend(70)
-    # output.make_matplot_legend(700, 'RdBu')
+    # output.make_matplot_legend(1100, 'RdBu')

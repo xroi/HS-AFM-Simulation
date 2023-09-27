@@ -58,12 +58,12 @@ def get_fg_orientation_weight(single_fg_counts_map):
 
 
 def z_test2(counts_map, needle_threshold, centers, args):
-    height_map = np.zeros(shape=counts_map.shape[:2])
+    height_map = np.ones(shape=counts_map.shape[:2]) * args["min_z_coord"]
     fg_weights = []
     for fg_i in range(counts_map.shape[3]):
         fg_weights.append(get_fg_orientation_weight(counts_map[:, :, :, fg_i]))
     for x, y in product(range(counts_map.shape[0]), range(counts_map.shape[1])):
-        slab_top_z = get_slab_top_z(x, y, centers, args)
+        slab_top_z = get_slab_top_z(x, y, centers, args) - args["min_z_coord"]
         counts_sum = 0
         for z in range(counts_map.shape[2] - 1, -1, -1):
             for fg_i in np.unique(np.array(np.where(counts_map[x, y, z, :] != 0.0))[0, :]):
@@ -74,7 +74,7 @@ def z_test2(counts_map, needle_threshold, centers, args):
             if counts_sum > 0:
                 pass
             if (counts_sum > needle_threshold) or z < slab_top_z:
-                height_map[x, y] = z
+                height_map[x, y] = z + args["min_z_coord"]
                 break
     return height_map
 
@@ -88,8 +88,8 @@ def get_slab_top_z(x, y, centers, args):
                                            (args["slab_thickness_a"] / args["voxel_size_a"]) / 2)
     else:
         slab_top_z = -1 if utils.is_in_circle(x, y, args["tunnel_radius_a"] / args["voxel_size_a"], centers[0],
-                                              centers[1]) else centers[2] * (args["slab_thickness_a"] / 2) / args[
-            "voxel_size_a"]
+                                              centers[1]) else centers[2] + ((args["slab_thickness_a"] / 2) / args[
+            "voxel_size_a"])
     return slab_top_z
 
 

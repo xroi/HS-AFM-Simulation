@@ -66,7 +66,8 @@ def z_test2(counts_map, needle_threshold, centers, args):
     height_map = np.ones(shape=counts_map.shape[:2]) * args["min_z_coord"]
     fg_weights = get_fg_weights_by_distance(counts_map)
     for x, y in product(range(counts_map.shape[0]), range(counts_map.shape[1])):
-        slab_top_z = get_slab_top_z(x, y, centers, args) - args["min_z_coord"]
+        slab_top_z = get_slab_top_z(x + args["min_x_coord"], y + args["min_y_coord"], centers, args) - args[
+            "min_z_coord"]
         counts_sum = 0
         for z in range(counts_map.shape[2] - 1, -1, -1):
             for fg_i in np.unique(np.array(np.where(counts_map[x, y, z, :] != 0.0))):
@@ -91,8 +92,8 @@ def get_slab_top_z(x, y, centers, args):
                                            (args["slab_thickness_a"] / args["voxel_size_a"]) / 2)
     else:
         slab_top_z = -1 if utils.is_in_circle(x, y, args["tunnel_radius_a"] / args["voxel_size_a"], centers[0],
-                                              centers[1]) else centers[2] + ((args["slab_thickness_a"] / 2) / args[
-            "voxel_size_a"])
+                                              centers[1]) else centers[2] + (
+                (args["slab_thickness_a"] / 2) / args["voxel_size_a"])
     return slab_top_z
 
 

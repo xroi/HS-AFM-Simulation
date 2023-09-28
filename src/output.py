@@ -14,17 +14,6 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, color=False):
             scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
             cm = plt.get_cmap('RdBu')
             data = cm(scaled_map)
-            # data = np.zeros((height_map.shape[0], height_map.shape[1], 3))
-            # for x, y in product(range(height_map.shape[0]), range(height_map.shape[1])):
-            #     # Red is over center, blue is under center
-            #     if height_map[x][y] > z_center:
-            #         data[x][y][0] = 1
-            #         data[x][y][1] = np.sqrt(-scaled_map[x][y] + 1)
-            #         data[x][y][2] = np.sqrt(-scaled_map[x][y] + 1)
-            #     else:
-            #         data[x][y][0] = 1 - np.sqrt(-scaled_map[x][y] + 1)
-            #         data[x][y][1] = 1 - np.sqrt(-scaled_map[x][y] + 1)
-            #         data[x][y][2] = 1
             for i in range(3):
                 data[:, :, i] = np.flipud(data[:, :, i].T)
             im = Image.fromarray((data[:, :, :3] * 255).astype(np.uint8), 'RGB')

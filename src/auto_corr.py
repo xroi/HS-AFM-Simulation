@@ -33,11 +33,6 @@ def calculate_taus(acorrs):
     xdata = [i for i in range(acorrs.shape[2])]
     taus = np.zeros(shape=(acorrs.shape[0], acorrs.shape[1]))
     for x, y in product(range(taus.shape[0]), range(taus.shape[1])):
-        # noinspection PyTupleAssignmentBalance
-        # if np.all(acorrs[x, y, :] == acorrs[x, y, :][0]):
-        #     taus[x, y] = 10
-        #     continue
-        # todo temp
         if np.all(acorrs[x, y, :] == acorrs[x, y, :][0]):
             taus[x, y] = -1
             continue
@@ -45,6 +40,4 @@ def calculate_taus(acorrs):
                                           full_output=False, p0=(1.0, 1.0, 1.0), maxfev=5000)
         A, tau, C = opt_params
         taus[x, y] = tau
-        # if tau > 20:  # todo temp
-        #     taus[x, y] = -1
     return taus

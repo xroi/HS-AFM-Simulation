@@ -44,29 +44,32 @@ def z_test(counts_map, needle_threshold, centers, args):
     return 0
 
 
-def get_fg_orientation_weight(single_fg_counts_map):
-    # Previous PCA approach
-    # coords = np.array(np.where(single_fg_counts_map != 0.0)).T
-    # coords_mean = coords.mean(axis=0)
-    # uu, dd, vv = np.linalg.svd(coords - coords_mean)
-    # fit_vec = vv[0] / np.linalg.norm(vv[0])
-    # return 1 / np.abs(fit_vec[2])
-    dist = (np.max(np.argmax(single_fg_counts_map, axis=2)) - np.min(np.argmin(single_fg_counts_map, axis=2)))
-    if dist == 0:
-        return 1
+def get_fg_weights_by_vector(counts_map):
+    fg_weights = []
+    # PCA
+    for fg_i in range(counts_map.shape[3]):
+        coords = np.array(np.where(counts_map[:, :, :, fg_i] != 0.0)).T
+        coords_mean = coords.mean(axis=0)
+        uu, dd, vv = np.linalg.svd(coords - coords_mean)
+        fit_vec = vv[0] / np.linalg.norm(vv[0])
+        fg_weights.append(1 / np.abs(fit_vec[2]))
+    return fg_weights[0]
+
+
+def get_fg_weights_by_distance(counts_map):
+    dist = (np.max(np.argmax(counts_map, axis=2), axis=(0, 1)) - np.min(np.argmin(counts_map, axis=2), axis=(0, 1)))
+    dist[dist == 0] = 1
     return 1 / dist
 
 
 def z_test2(counts_map, needle_threshold, centers, args):
     height_map = np.ones(shape=counts_map.shape[:2]) * args["min_z_coord"]
-    fg_weights = []
-    for fg_i in range(counts_map.shape[3]):
-        fg_weights.append(get_fg_orientation_weight(counts_map[:, :, :, fg_i]))
+    fg_weights = get_fg_weights_by_distance(counts_map)
     for x, y in product(range(counts_map.shape[0]), range(counts_map.shape[1])):
         slab_top_z = get_slab_top_z(x, y, centers, args) - args["min_z_coord"]
         counts_sum = 0
         for z in range(counts_map.shape[2] - 1, -1, -1):
-            for fg_i in np.unique(np.array(np.where(counts_map[x, y, z, :] != 0.0))[0, :]):
+            for fg_i in np.unique(np.array(np.where(counts_map[x, y, z, :] != 0.0))):
                 # todo how to get mean for pixels around rim? (fake empty space)
                 counts_sum += utils.get_circle_mean(counts_map[:, :, z, fg_i], x, y, args["needle_radius_px"]) * \
                               fg_weights[fg_i]

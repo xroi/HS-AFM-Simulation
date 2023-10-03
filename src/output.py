@@ -12,7 +12,7 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, color=False):
     for height_map in maps:
         if color:
             scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
-            cm = plt.get_cmap('RdBu')
+            cm = plt.get_cmap('gist_stern')
             data = cm(scaled_map)
             for i in range(3):
                 data[:, :, i] = np.flipud(data[:, :, i].T)

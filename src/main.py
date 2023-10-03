@@ -21,11 +21,11 @@ def main():
         original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
         center_z = int(original_shape[0] / 2)
         output.output_gif(args, np.array(real_time_maps),
-                          f"{args['output_gif_path']}_real_time.gif", center_z, 0,
+                          f"{args['output_gif_path']}_real_time.gif", center_z, args["min_z_coord"],
                           args["max_z_coord"], args["color_gif"])
         if len(needle_maps) > 0:
             output.output_gif(args, needle_maps,
-                              f"{args['output_gif_path']}_needle.gif", center_z, 0,
+                              f"{args['output_gif_path']}_needle.gif", center_z, args["min_z_coord"],
                               args["max_z_coord"], args["color_gif"])
     if args["output_hdf5"]:
         output.output_hdf5(real_time_maps)
@@ -167,4 +167,4 @@ if __name__ == "__main__":
     main()
     # print((utils.get_coordinate_list(4, 12, 480.0, 150.0, 900.0)))
     # output.make_bw_legend(70)
-    # output.make_matplot_legend(1100, 'RdBu')
+    # output.make_matplot_legend(80, 'RdBu')

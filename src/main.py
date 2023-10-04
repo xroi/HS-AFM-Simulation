@@ -18,7 +18,7 @@ def main():
     # post_analysis(args, real_time_maps, needle_maps)
 
     if args["output_gif"]:
-        original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+        original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
         center_z = int(original_shape[0] / 2)
         output.output_gif(args, np.array(real_time_maps),
                           f"{args['output_gif_path']}_real_time.gif", center_z, args["min_z_coord"],
@@ -87,7 +87,7 @@ def get_individual_counts_maps(time, args):
     y_size = args["max_y_coord"] - args["min_y_coord"]
     z_size = args["max_z_coord"] - args["min_z_coord"]
 
-    with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
+    with h5py.File(f"{args['input_path']}/{time}.pb.hdf5", "r") as f:
         fg_data = f["fg_xyz_hist"]
         fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(fg_data.keys())))
         for i, key in enumerate(fg_data.keys()):

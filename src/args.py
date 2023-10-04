@@ -31,7 +31,7 @@ def parse_arguments():
                              "--no-npc-simulation flag, the program uses files in the folder specified with "
                              "--existing_files_path",
                         required=True)
-    parser.add_argument("--existing-files-path",
+    parser.add_argument("--input-path",
                         type=str,
                         help="Path to the folder containing hdf5 density map files, to be used in the case of "
                              "--no-npc-simulation flag. Files should be named <delta_time_in_ns>.pb.hdf5")

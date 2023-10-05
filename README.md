@@ -5,6 +5,8 @@ nuclear pore complex transport module.
 
 ## Usage
 
+Get all packages listed in requirements.txt and run:
+
 ```
 python main.py <args>
 ```

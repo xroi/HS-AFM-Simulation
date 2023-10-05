@@ -19,7 +19,7 @@ def output_gif(args, maps, filename, z_center, min_z, max_z):
         im = Image.fromarray((data[:, :, :3] * 255).astype(np.uint8), 'RGB')
         im = im.resize((args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
         images.append(im)
-    images[0].save(filename, append_images=images[1:], save_all=True, duration=100, loop=0)
+    images[0].save(filename, append_images=images[1:], save_all=True, duration=150, loop=0)
 
 
 def save_pickle(real_time_maps, needle_maps, args, file_name):

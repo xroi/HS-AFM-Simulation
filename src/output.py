@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import pickle
 import plotly.express as px
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -21,9 +22,16 @@ def output_gif(args, maps, filename, z_center, min_z, max_z):
     images[0].save(filename, append_images=images[1:], save_all=True, duration=100, loop=0)
 
 
-def output_hdf5(maps):
-    # todo
-    raise Exception("not yet implemented.")
+def save_pickle(real_time_maps, needle_maps, args, file_name):
+    save_dict = {'real_time_maps': real_time_maps, 'needle_maps': needle_maps, 'args': args}
+    with open(file_name, 'wb') as f:
+        pickle.dump(save_dict, f)
+
+
+def load_pickle(file_name):
+    """returns a dictionary with the following keys: real_time_maps, needle_maps, args"""
+    with open(file_name, 'rb') as f:
+        return pickle.load(f)
 
 
 def visualize_auto_corr(acorrs):
@@ -48,7 +56,7 @@ def visualize_auto_corr(acorrs):
     fig.show()
 
 
-def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, center_y, dtick):
+def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, center_y, dtick, file_path):
     fig = go.Figure()
     fig.add_trace(go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau'}))
     fig.layout.height = 500
@@ -68,7 +76,7 @@ def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, cente
                       yaxis={"title": 'Distance from center (A)'},
                       xaxis={"title"    : 'Distance from center (A)',
                              "tickangle": 0}, )
-    fig.show()
+    fig.write_html(file_path)
 
 
 def taus_tick_val(i, voxel_size, center, dtick):

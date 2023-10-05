@@ -15,19 +15,18 @@ def main():
 
     real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
-
+    if args["output_pickle"]:
+        output.save_pickle(real_time_maps, needle_maps, args, f"{args['output_path_prefix']}.pickle")
     if args["output_gif"]:
         original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
         center_z = int(original_shape[0] / 2)
         output.output_gif(args, np.array(real_time_maps),
-                          f"{args['output_gif_path']}_real_time.gif", center_z, args["min_z_coord"],
+                          f"{args['output_path_prefix']}_real_time.gif", center_z, args["min_z_coord"],
                           args["max_z_coord"])
         if len(needle_maps) > 0:
             output.output_gif(args, needle_maps,
-                              f"{args['output_gif_path']}_needle.gif", center_z, args["min_z_coord"],
+                              f"{args['output_path_prefix']}_needle.gif", center_z, args["min_z_coord"],
                               args["max_z_coord"])
-    if args["output_hdf5"]:
-        output.output_hdf5(real_time_maps)
 
     post_analysis(args, real_time_maps, needle_maps)
 
@@ -39,7 +38,8 @@ def post_analysis(args, real_time_maps, needle_maps):
     center_x = int(original_shape[0] / 2)
     center_y = int(original_shape[1] / 2)
     output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
-                          args["max_y_coord"], center_x, center_y, 10)
+                          args["max_y_coord"], center_x, center_y, 10,
+                          f"{args['output_path_prefix']}_taus_real_time.html")
     # real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 3)
     # taus = auto_corr.calculate_taus(real_time_acorrs)
     # output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
@@ -169,3 +169,6 @@ if __name__ == "__main__":
     # print((utils.get_coordinate_list(4, 12, 480.0, 150.0, 900.0)))
     # output.make_bw_legend(70)
     # output.make_matplot_legend(80, 'RdBu')
+
+    # pickle_dict = output.load_pickle("")
+    # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])

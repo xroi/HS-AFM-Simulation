@@ -157,7 +157,11 @@ def parse_arguments():
                         action=argparse.BooleanOptionalAction,
                         help="Outputs a gif if '--output-gif', doesn't if --no-output-gif",
                         required=True)
-    parser.add_argument("--output-gif-path",
+    parser.add_argument('--output-pickle',
+                        action=argparse.BooleanOptionalAction,
+                        help="Outputs a pickle if '--output-pickle', doesn't if --no-output-pickle",
+                        required=True)
+    parser.add_argument("--output-path-prefix",
                         type=str,
                         help="Path to output gif file.",
                         required=True)

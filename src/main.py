@@ -15,26 +15,27 @@ def main():
 
     real_time_maps = get_real_time_maps(args)
     needle_maps = get_needle_maps(real_time_maps, args)
-    # post_analysis(args, real_time_maps, needle_maps)
 
     if args["output_gif"]:
         original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
         center_z = int(original_shape[0] / 2)
         output.output_gif(args, np.array(real_time_maps),
                           f"{args['output_gif_path']}_real_time.gif", center_z, args["min_z_coord"],
-                          args["max_z_coord"], args["color_gif"])
+                          args["max_z_coord"])
         if len(needle_maps) > 0:
             output.output_gif(args, needle_maps,
                               f"{args['output_gif_path']}_needle.gif", center_z, args["min_z_coord"],
-                              args["max_z_coord"], args["color_gif"])
+                              args["max_z_coord"])
     if args["output_hdf5"]:
         output.output_hdf5(real_time_maps)
+
+    post_analysis(args, real_time_maps, needle_maps)
 
 
 def post_analysis(args, real_time_maps, needle_maps):
     real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 1)
     taus = auto_corr.calculate_taus(real_time_acorrs)
-    original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
     center_x = int(original_shape[0] / 2)
     center_y = int(original_shape[1] / 2)
     output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
@@ -52,7 +53,7 @@ def get_real_time_maps(args):
         print(f"{i}")
         counts_maps.append(get_individual_counts_maps(i, args))
     needle_threshold = get_needle_threshold(args, counts_maps)
-    original_shape = get_hdf5_size(f"{args['existing_files_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
     centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
     for i, counts_map in enumerate(counts_maps):
         height_map = height_funcs.z_test2(counts_map, needle_threshold, centers, args)

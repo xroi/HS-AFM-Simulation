@@ -6,21 +6,16 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def output_gif(args, maps, filename, z_center, min_z, max_z, color=False):
+def output_gif(args, maps, filename, z_center, min_z, max_z):
     """z_center is the real center"""
     images = []
     for height_map in maps:
-        if color:
-            scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
-            cm = plt.get_cmap('gist_stern')
-            data = cm(scaled_map)
-            for i in range(3):
-                data[:, :, i] = np.flipud(data[:, :, i].T)
-            im = Image.fromarray((data[:, :, :3] * 255).astype(np.uint8), 'RGB')
-        else:  # bw
-            # Scale z values to be between 0 and 1 (for visualization)
-            height_map = (height_map - min_z) / (max_z - 1 - min_z)
-            im = Image.fromarray((np.flipud(height_map.T) * 255).astype(np.uint8))
+        scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
+        cm = plt.get_cmap(args["output_gif_color_map"])
+        data = cm(scaled_map)
+        for i in range(3):
+            data[:, :, i] = np.flipud(data[:, :, i].T)
+        im = Image.fromarray((data[:, :, :3] * 255).astype(np.uint8), 'RGB')
         im = im.resize((args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
         images.append(im)
     images[0].save(filename, append_images=images[1:], save_all=True, duration=100, loop=0)

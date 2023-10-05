@@ -161,9 +161,10 @@ def parse_arguments():
                         type=str,
                         help="Path to output gif file.",
                         required=True)
-    parser.add_argument('--color-gif',
-                        action=argparse.BooleanOptionalAction,
-                        help="If true, outputs a colored gif. Otherwise the gif will be black and white.",
+    parser.add_argument('--output-gif-color-map',
+                        type=str,
+                        help="Determines the matplotlib color map used for the output gif. Some useful ones are: "
+                             "'gist_gray' for black and white, 'RdBu' for diverging Red-white-blue.",
                         required=True)
     parser.add_argument("--output_resolution_x",
                         type=int,

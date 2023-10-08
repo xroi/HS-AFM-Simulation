@@ -62,19 +62,22 @@ def get_fg_weights_by_distance(counts_map):
     return 1 / dist
 
 
-def z_test2(counts_map, needle_threshold, centers, args):
-    height_map = np.ones(shape=counts_map.shape[:2]) * args["min_z_coord"]
-    fg_weights = get_fg_weights_by_distance(counts_map)
-    for x, y in product(range(counts_map.shape[0]), range(counts_map.shape[1])):
+def z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, args):
+    height_map = np.ones(shape=fgs_counts_map.shape[:2]) * args["min_z_coord"]
+    fg_weights = get_fg_weights_by_distance(fgs_counts_map)
+    for x, y in product(range(fgs_counts_map.shape[0]), range(fgs_counts_map.shape[1])):
         slab_top_z = get_slab_top_z(x + args["min_x_coord"], y + args["min_y_coord"], centers, args) - args[
             "min_z_coord"]
         counts_sum = 0
-        for z in range(counts_map.shape[2] - 1, -1, -1):
-            for fg_i in np.unique(np.array(np.where(counts_map[x, y, z, :] != 0.0))):
+        for z in range(fgs_counts_map.shape[2] - 1, -1, -1):
+            for fg_i in np.unique(np.array(np.where(fgs_counts_map[x, y, z, :] != 0.0))):
                 # todo how to get mean for pixels around rim? (fake empty space)
-                counts_sum += utils.get_circle_mean(counts_map[:, :, z, fg_i], x, y, args["needle_radius_px"]) * \
+                counts_sum += utils.get_circle_mean(fgs_counts_map[:, :, z, fg_i], x, y, args["needle_radius_px"]) * \
                               fg_weights[fg_i]
                 # counts_sum += counts_map[x, y, z, fg_i] * fg_weights[fg_i]
+            for floater_i in np.unique(np.array(np.where(floaters_counts_map[x, y, z, :] != 0.0))):
+                counts_sum += utils.get_circle_mean(floaters_counts_map[:, :, z, floater_i], x, y,
+                                                    args["needle_radius_px"])
             if counts_sum > 0:
                 pass
             if (counts_sum > needle_threshold) or z < slab_top_z:

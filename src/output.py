@@ -100,10 +100,10 @@ def make_bw_legend(height):
     make_3_color_legend(height, "rgb(0, 0, 0)", "rgb(127, 127, 127)", "rgb(255, 255, 255)")
 
 
-def make_matplot_legend(height, color_map):
+def make_matplot_legend(min, max, color_map):
     ax = plt.subplot()
-    im = ax.imshow(np.arange(-int(height / 2), int(height / 2), 10).reshape(int(height / 10), 1), cmap=color_map)
+    im = ax.imshow(np.arange(min, max, 10).reshape(int((max - min) / 10), 1), cmap=color_map)
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="200%", pad=1)
-    plt.colorbar(im, cax=cax)
+    plt.colorbar(im, cax=cax, label="Height from center plane (Å)")
     plt.show()

@@ -47,17 +47,14 @@ def post_analysis(args, real_time_maps, needle_maps):
 
 
 def get_real_time_maps(args):
-    counts_maps = []
     real_time_maps = []
-    for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
-        print(f"{i}")
-        counts_maps.append(get_individual_counts_maps(i, args))
-    needle_threshold = get_needle_threshold(args, counts_maps)
+    needle_threshold = args["needle_custom_threshold"]  # todo not using get_needle_threshold
     original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
     centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
-    for i, counts_map in enumerate(counts_maps):
-        height_map = height_funcs.z_test2(counts_map, needle_threshold, centers, args)
-        print(i)
+    for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
+        print(f"{i}")
+        fgs_counts_map, floaters_counts_map = get_individual_counts_maps(i, args)
+        height_map = height_funcs.z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, args)
         real_time_maps.append(height_map)
     return real_time_maps
 
@@ -82,7 +79,7 @@ def get_real_time_maps(args):
 
 def get_individual_counts_maps(time, args):
     """
-    return 4d array of size (size_x, size_y, size_z, floaters_amount)
+    returns a tuple of two 4d array of size (size_x, size_y, size_z, mol_number), one for floaters and one for fgs.
     """
     x_size = args["max_x_coord"] - args["min_x_coord"]
     y_size = args["max_y_coord"] - args["min_y_coord"]
@@ -96,15 +93,16 @@ def get_individual_counts_maps(time, args):
                                                     args["min_x_coord"]:args["max_x_coord"],
                                                     args["min_y_coord"]:args["max_y_coord"],
                                                     args["min_z_coord"]:args["max_z_coord"]]
-    #     floater_data = f["floater_xyz_hist"]
-    #     floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
-    #     for i, key in enumerate(floater_data.keys()):
-    #         floater_individual_counts_maps[:, :, :, i] = np.array(floater_data[key])[
-    #                                                      args["min_x_coord"]:args["max_x_coord"],
-    #                                                      args["min_y_coord"]:args["max_y_coord"],
-    #                                                      args["min_z_coord"]:args["max_z_coord"]]
+        floater_data = f["floater_xyz_hist"]
+        floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
+        if args["floaters_resistance"]:
+            for i, key in enumerate(floater_data.keys()):
+                floater_individual_counts_maps[:, :, :, i] = np.array(floater_data[key])[
+                                                             args["min_x_coord"]:args["max_x_coord"],
+                                                             args["min_y_coord"]:args["max_y_coord"],
+                                                             args["min_z_coord"]:args["max_z_coord"]]
     # return np.append(fg_individual_counts_maps, floater_individual_counts_maps, axis=3)
-    return fg_individual_counts_maps
+    return fg_individual_counts_maps, floater_individual_counts_maps
 
 
 def get_needle_maps(real_time_maps, args):
@@ -168,7 +166,7 @@ if __name__ == "__main__":
     main()
     # print((utils.get_coordinate_list(4, 12, 480.0, 150.0, 900.0)))
     # output.make_bw_legend(70)
-    # output.make_matplot_legend(80, 'RdBu')
+    # output.make_matplot_legend(0, 550, 'gist_gray')
 
     # pickle_dict = output.load_pickle("")
     # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])

@@ -1,5 +1,7 @@
 import numpy as np
 
+AVOGADRO = 6.0221408e+23
+
 
 def get_ball_mask(arr, x, y, z, r):
     """returns a mask for a ball of radius r, around x,y,z, in 3d array arr."""
@@ -118,12 +120,10 @@ def get_coordinate_list(cylinder_layers, fg_per_layer, r, p):
 
 
 def concentration_to_amount(molar, box_side_a):
-    avogadro = 6.0221408e+23
     volume = np.power(box_side_a, 3)
-    return (molar * avogadro * volume) / 1e+27
+    return (molar * AVOGADRO * volume) / 1e+27
 
 
 def amount_to_concentration(amount, box_side_a):
-    avogadro = 6.0221408e+23
     volume = np.power(box_side_a, 3)
-    return amount / (avogadro * volume * 1e-27)
+    return amount / (AVOGADRO * volume * 1e-27)

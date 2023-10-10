@@ -37,6 +37,7 @@ def post_analysis(args, real_time_maps, needle_maps):
     original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
     center_x = int(original_shape[0] / 2)
     center_y = int(original_shape[1] / 2)
+    center_z = int(original_shape[2] / 2)
     output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
                           args["max_y_coord"], center_x, center_y, 10,
                           f"{args['output_path_prefix']}_taus_real_time.html")
@@ -44,6 +45,11 @@ def post_analysis(args, real_time_maps, needle_maps):
     # taus = auto_corr.calculate_taus(real_time_acorrs)
     # output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
     #                       args["max_y_coord"], center_x, center_y, 10)
+
+    max_r = utils.get_max_r(real_time_maps[0].shape, real_time_maps[0].shape[0] / 2, real_time_maps[0].shape[1] / 2)
+    ring_means = utils.get_ring_means_array(real_time_maps, center_x, center_y, max_r)
+    ring_means = (ring_means - center_z)
+    output.visualize_ring_means(ring_means, args["voxel_size_a"])
 
 
 def get_real_time_maps(args):
@@ -116,8 +122,10 @@ def get_needle_maps(real_time_maps, args):
     size_y = real_time_maps[0].shape[1]
     time_per_line, time_per_pixel = get_times(args, size_x)
     needle_maps = []
-    total_time = float(args["simulation_start_time_ns"])
+    total_time = float(args["interval_ns"])
     cur_needle_map_index = 0
+    if int(total_time / args["interval_ns"]) >= len(real_time_maps):
+        return needle_maps
     while total_time < args["simulation_end_time_ns"]:
         needle_maps.append(np.zeros(shape=real_time_maps[0].shape))
         for y in range(size_y):
@@ -164,7 +172,7 @@ def get_needle_threshold(args, density_maps):
 
 if __name__ == "__main__":
     main()
-    # print((utils.get_coordinate_list(4, 12, 480.0, 150.0, 900.0)))
+    # print((utils.get_coordinate_list(4, 8, 185.0, 75.0)))
     # output.make_bw_legend(70)
     # output.make_matplot_legend(0, 550, 'gist_gray')
 

@@ -79,6 +79,14 @@ def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, cente
     fig.write_html(file_path)
 
 
+def visualize_ring_means(ring_means, voxel_size):
+    max_r = len(ring_means)
+    x = [i * voxel_size for i in range(max_r)]
+    fig = go.Figure(data=go.Scatter(x=x, y=[i * voxel_size for i in ring_means], mode='lines+markers'))
+    fig.update_layout(xaxis_title="Distance from center (A)", yaxis_title="Mean height (A)")
+    fig.show()
+
+
 def taus_tick_val(i, voxel_size, center, dtick):
     if i % dtick != 0:
         return ""

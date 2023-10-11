@@ -52,11 +52,14 @@ def visualize_auto_corr(acorrs):
     fig.add_trace(go.Box(y=acorrs[:, :, 4].flatten(), name="Lag=4"))
     fig.add_trace(go.Box(y=acorrs[:, :, 5].flatten(), name="Lag=5"))
     # fig.update_traces(boxpoints='all', jitter=0.3)
-    fig.update_layout(showlegend=False, yaxis=dict(title='Auto Correlation'))
+    fig.update_layout(showlegend=False,
+                      yaxis=dict(title='Auto Correlation'),
+                      font=dict(size=20))
     fig.show()
 
 
 def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, center_y, dtick, file_path):
+    voxel_size = voxel_size / 10
     fig = go.Figure()
     fig.add_trace(go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau'}))
     fig.layout.height = 500
@@ -73,18 +76,25 @@ def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, cente
                      range(int(min_y), int(max_y))]
     })
     fig.update_layout(title="",
-                      yaxis={"title": 'Distance from center (A)'},
-                      xaxis={"title"    : 'Distance from center (A)',
-                             "tickangle": 0}, )
-    fig.write_html(file_path)
+                      yaxis={"title": 'Distance from center (nm)'},
+                      xaxis={"title"    : 'Distance from center (nm)',
+                             "tickangle": 0},
+                      font=dict(size=20))
+    fig.write_image(file_path)
 
 
-def visualize_ring_means(ring_means, voxel_size):
+def visualize_ring_means(ring_means, voxel_size, file_path):
+    """ring means is a 2d array where axis1 are the means over time, and axis2 are different runs
+    todo allow this and show on lower opacity"""
+    voxel_size = voxel_size / 10
     max_r = len(ring_means)
     x = [i * voxel_size for i in range(max_r)]
     fig = go.Figure(data=go.Scatter(x=x, y=[i * voxel_size for i in ring_means], mode='lines+markers'))
-    fig.update_layout(xaxis_title="Distance from center (A)", yaxis_title="Mean height (A)")
-    fig.show()
+    fig.update_layout(xaxis_title="Distance from center (nm)",
+                      yaxis_title="Mean height (nm)",
+                      font=dict(size=20),
+                      template="plotly_white")
+    fig.write_image(file_path)
 
 
 def taus_tick_val(i, voxel_size, center, dtick):
@@ -112,6 +122,6 @@ def make_matplot_legend(min, max, color_map):
     ax = plt.subplot()
     im = ax.imshow(np.arange(min, max, 10).reshape(int((max - min) / 10), 1), cmap=color_map)
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="200%", pad=1)
-    plt.colorbar(im, cax=cax, label="Height from center plane (Å)")
+    cax = divider.append_axes("right", size="30%", pad=1)
+    plt.colorbar(im, cax=cax, label="Height from center plane (nm)")
     plt.show()

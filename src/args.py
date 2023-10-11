@@ -173,7 +173,8 @@ def parse_arguments():
     parser.add_argument('--output-gif-color-map',
                         type=str,
                         help="Determines the matplotlib color map used for the output gif. Some useful ones are: "
-                             "'gist_gray' for black and white, 'RdBu' for diverging Red-white-blue.",
+                             "'gist_gray' for black and white, 'RdBu' for diverging Red-white-blue, 'gist_rainbow' "
+                             "for rainbow.",
                         required=True)
     parser.add_argument("--output_resolution_x",
                         type=int,

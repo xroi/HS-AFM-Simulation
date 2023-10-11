@@ -77,7 +77,7 @@ def z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, args
                 # counts_sum += counts_map[x, y, z, fg_i] * fg_weights[fg_i]
             for floater_i in np.unique(np.array(np.where(floaters_counts_map[x, y, z, :] != 0.0))):
                 counts_sum += utils.get_circle_mean(floaters_counts_map[:, :, z, floater_i], x, y,
-                                                    args["needle_radius_px"])
+                                                    args["needle_radius_px"]) * 0.1  # todo change
             if counts_sum > 0:
                 pass
             if (counts_sum > needle_threshold) or z < slab_top_z:

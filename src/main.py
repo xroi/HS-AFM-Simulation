@@ -173,10 +173,10 @@ def get_needle_threshold(args, density_maps):
 
 
 if __name__ == "__main__":
-    # main()
+    main()
     # print((utils.get_coordinate_list(4, 8, 185.0, 75.0)))
     # output.make_bw_legend(70)
-    output.make_matplot_legend(0, 80, 'gist_rainbow')
+    # output.make_matplot_legend(0, 80, 'gist_rainbow')
 
     # pickle_dict = output.load_pickle("Outputs/08-10-2023-NTR/08-10-2023-NTR.pickle")
     # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])

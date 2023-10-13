@@ -61,7 +61,7 @@ def visualize_auto_corr(acorrs):
 def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, center_y, dtick, file_path):
     voxel_size = voxel_size / 10
     fig = go.Figure()
-    fig.add_trace(go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau'}))
+    fig.add_trace(go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau (Microseconds)'}))
     fig.layout.height = 500
     fig.layout.width = 500
     fig.update_layout(xaxis={

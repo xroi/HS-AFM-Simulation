@@ -8,7 +8,7 @@ def parse_arguments():
     parser.add_argument("--start-time-ns", type=int, required=True)
     parser.add_argument("--end-time-ns", type=int, required=True)
     parser.add_argument("--interval-ns", type=int, required=True)
-    parser.add_argument("--output-path", type=int, required=True)
+    parser.add_argument("--output-path", type=str, required=True)
     return vars(parser.parse_args())
 
 

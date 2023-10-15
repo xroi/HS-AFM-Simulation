@@ -21,7 +21,7 @@ def main():
     RMF.clone_static_frame(in_fh, out_fh)
     for i in range(args["start_time_ns"], args["end_time_ns"], args["start_time_ns"]):
         print(i)
-        in_fh = RMF.open_rmf_file_read_only(f"{args['output_path']}/{i}.movie.rmf")
+        in_fh = RMF.open_rmf_file_read_only(f"{args['input_path']}/{i}.movie.rmf")
         for f_id, f in enumerate(in_fh.get_frames()):
             in_fh.set_current_frame(f)
             out_fh.add_frame(in_fh.get_name(f), in_fh.get_type(f))

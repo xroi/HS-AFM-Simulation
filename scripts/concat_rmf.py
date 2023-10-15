@@ -15,7 +15,7 @@ def parse_arguments():
 def main():
     args = parse_arguments()
     out_fh = RMF.create_rmf_file(args["output_path"])
-    in_fh = RMF.open_rmf_file_read_only(f"{args['output_path']}/{args['start_time_ns']}.movie.rmf")
+    in_fh = RMF.open_rmf_file_read_only(f"{args['input_path']}/{args['start_time_ns']}.movie.rmf")
     RMF.clone_file_info(in_fh, out_fh)
     RMF.clone_hierarchy(in_fh, out_fh)
     RMF.clone_static_frame(in_fh, out_fh)

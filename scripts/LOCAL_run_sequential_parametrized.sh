@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #SBATCH --mem=2g
-#SBATCH --time=4-0
+#SBATCH --time=7-0
 #SBATCH --mail-user=roi.eliasian@mail.huji.ac.il
 #SBATCH --mail-type=ALL
 
@@ -12,13 +12,14 @@ endif
 # Setup Environment
 set IMP_FOLDER=/cs/labs/ravehb/ravehb/imp/fast_conda/
 set IMP=$IMP_FOLDER/setup_environment.sh
-set seed=`od -An -N4 -td4 /dev/random`
 source /cs/labs/ravehb/ravehb/External/venv_imp2023_v2/bin/activate.csh
-mkdir -p Output
-mkdir -p Config
 
 set OUTPUT_PATH=$4/
 set CONFIG_PATH=$5
+set seed=`od -An -N4 -td4 /dev/random`
+
+mkdir -p $OUTPUT_PATH
+echo output path is $OUTPUT_PATH
 
 if (`echo "$1==1" | bc`) then
     echo Initilising new simulation...
@@ -26,6 +27,7 @@ if (`echo "$1==1" | bc`) then
     $IMP $IMP_FOLDER/bin/fg_simulation --configuration $CONFIG_PATH --output $OUTPUT_PATH$i.pb --short_init_factor 0.5 --short_sim_factor 1.00 --conformations $OUTPUT_PATH$i.movie.rmf --final_conformations $OUTPUT_PATH$i.pb.final.rmf --random_seed $seed
 endif
 
+#ignore this idk scripting format
 set i=(`echo "$2 + $3" | bc`)
 set j=$2
 

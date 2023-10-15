@@ -9,5 +9,4 @@ if ($#argv != 5) then
     exit 0
 endif
 
-#$IMP python3 ../scripts/concat_rmf.py $argv:q
-$IMP python3 ../scripts/concat_rmf.py --input-path $1 --output-path $2 --start-time-ns $3 --end-time-ns $4 --interval-ns $5
+$IMP python3 concat_rmf.py --input-path $1 --output-path $2 --start-time-ns $3 --end-time-ns $4 --interval-ns $5

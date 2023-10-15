@@ -4,7 +4,7 @@ import argparse
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_path", type=str, required=True, help="Path to folder")
+    parser.add_argument("--input-path", type=str, required=True, help="Path to folder")
     parser.add_argument("--start-time-ns", type=int, required=True)
     parser.add_argument("--end-time-ns", type=int, required=True)
     parser.add_argument("--interval-ns", type=int, required=True)

@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
-from itertools import product
+from alive_progress import alive_bar
+import scipy.stats
 
 import height_funcs
 import args as arguments
@@ -54,16 +55,31 @@ def post_analysis(args, real_time_maps, needle_maps):
                                 f"{args['output_path_prefix']}_ring_means_real_time.png")
 
 
+def calculate_normal_pdf(min_z, max_z, mu, sigma):
+    vals = {}
+    norm = scipy.stats.norm(mu, sigma)
+    for i in range(min_z, max_z):
+        vals[i] = norm.pdf(i)
+    return vals
+
+
 def get_real_time_maps(args):
     real_time_maps = []
     needle_threshold = args["needle_custom_threshold"]  # todo not using get_needle_threshold
     original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
     centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
-    for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
-        print(f"{i}")
-        fgs_counts_map, floaters_counts_map = get_individual_counts_maps(i, args)
-        height_map = height_funcs.z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, args)
-        real_time_maps.append(height_map)
+    fg_pdfs = calculate_normal_pdf(0, args["max_z_coord"] - args["min_z_coord"] + 1, 0,
+                                   2 * args["slab_thickness_a"] / args["voxel_size_a"])
+    floater_pdfs = calculate_normal_pdf(0, centers[2] * 2, centers[2],
+                                        args["slab_thickness_a"] / args["voxel_size_a"])
+    pdfs = (fg_pdfs, floater_pdfs)
+    with alive_bar(int(args["simulation_end_time_ns"] / args["interval_ns"]), force_tty=True) as bar:
+        for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
+            fgs_counts_map, floaters_counts_map = get_individual_counts_maps(i, args)
+            height_map = height_funcs.z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs,
+                                              args)
+            real_time_maps.append(height_map)
+            bar()
     return real_time_maps
 
 

@@ -3,11 +3,14 @@
 set IMP_FOLDER=/cs/labs/ravehb/ravehb/imp/fast_conda/
 set IMP=$IMP_FOLDER/setup_environment.sh
 source /cs/labs/ravehb/ravehb/External/venv_imp2023_v2/bin/activate.csh
-set SCRIPT=`readlink -f "$0"`
+
 
 if ($#argv != 5) then
     echo "Syntax: $0 <folder_input_path> <rmf_output_path> <start_time> <end_time> <interval>"
     exit 0
 endif
 
-$IMP python3 `dirname "$SCRIPT"`/concat_rmf.py --input-path $1 --output-path $2 --start-time-ns $3 --end-time-ns $4 --interval-ns $5
+set SCRIPT=`readlink -f "$0"`
+set DIRNAME=`dirname "$SCRIPT"`
+
+$IMP python3 $DIRNAME/concat_rmf.py --input-path $1 --output-path $2 --start-time-ns $3 --end-time-ns $4 --interval-ns $5

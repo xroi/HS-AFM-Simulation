@@ -12,6 +12,9 @@ endif
 
 set OUTPUT_PATH=$1/
 set CONFIG_PATH=$2
+set SCRIPT=`readlink -f "$0"`
+set DIRNAME=`dirname "$SCRIPT"`
+
 
 mkdir -p $OUTPUT_PATH
-./7_run_sequential_parametrized.sh 1 1000 1000 $OUTPUT_PATH/$SLURM_ARRAY_TASK_ID $CONFIG_PATH
+$DIRNAME/LOCAL_run_sequential_parametrized.sh 1 1000 1000 $OUTPUT_PATH/$SLURM_ARRAY_TASK_ID $CONFIG_PATH

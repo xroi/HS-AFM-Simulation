@@ -12,4 +12,4 @@ source /cs/labs/ravehb/ravehb/External/venv_imp2023_v2/bin/activate.csh
 set SCRIPT=`readlink -f "$0"`
 set DIRNAME=`dirname "$SCRIPT"`
 
-$IMP python3 $DIRNAME/other_stats.py $1
+$IMP python3 $DIRNAME/other_stats.py --input-path $1 --output-path .

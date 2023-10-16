@@ -17,9 +17,9 @@ def main():
         output.ParseFromString(fstring)
         time_ns_arr = []
         energy_arr = []
-        for i in range(len(output.statistics.global_order_parmas)):
-            time_ns_arr.append(output.statistics.global_order_parmas[i].time_ns)
-            energy_arr.append(output.statistics.global_order_parmas[i].energy)
+        for i in range(len(output.statistics.global_order_params)):
+            time_ns_arr.append(output.statistics.global_order_params[i].time_ns)
+            energy_arr.append(output.statistics.global_order_params[i].energy)
         print(time_ns_arr)
         print(energy_arr)
 

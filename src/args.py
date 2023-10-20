@@ -138,6 +138,14 @@ def parse_arguments():
                         help="Determines whether floaters (NTRs and Passive Molecules) offer resistance to the "
                              "simulated tip.",
                         required=True)
+    parser.add_argument("--fgs-sigma-a",
+                        type=float,
+                        help="The sigma value for the normal distribution used to weigh fg chains.",
+                        required=True)
+    parser.add_argument("--floaters-sigma-a",
+                        type=float,
+                        help="The sigma value for the normal distribution used to weigh floaters.",
+                        required=True)
 
     # Needle speed:
     speed_grp = parser.add_mutually_exclusive_group(required=True)

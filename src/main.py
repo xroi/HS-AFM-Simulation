@@ -76,9 +76,9 @@ def get_real_time_maps(args):
     original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
     centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
     fg_pdfs = calculate_normal_pdf(0, args["max_z_coord"] - args["min_z_coord"] + 1, 0,
-                                   2 * args["slab_thickness_a"] / args["voxel_size_a"])
+                                   args["fgs_sigma_a"] / args["voxel_size_a"])
     floater_pdfs = calculate_normal_pdf(0, centers[2] * 2, centers[2],
-                                        args["slab_thickness_a"] / args["voxel_size_a"])
+                                        args["floaters_sigma_a"] / args["voxel_size_a"])
     pdfs = (fg_pdfs, floater_pdfs)
     stages_total = int(args["simulation_end_time_ns"] / args["interval_ns"] - args["simulation_start_time_ns"] /
                        args["interval_ns"])

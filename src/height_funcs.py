@@ -63,23 +63,21 @@ def get_fg_weights_by_distance(counts_map, fgs_pdf):
 
 
 def z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs, args):
-    # todo precalculate pdf for all z values. this can be done once for the whole run
     height_map = np.ones(shape=fgs_counts_map.shape[:2]) * args["min_z_coord"]
+    # Calculate the weights for each fg. this is done once per time step.
     fg_weights = get_fg_weights_by_distance(fgs_counts_map, pdfs[0])
     for x, y in product(range(fgs_counts_map.shape[0]), range(fgs_counts_map.shape[1])):
         slab_top_z = get_slab_top_z(x + args["min_x_coord"], y + args["min_y_coord"], centers, args) - args[
             "min_z_coord"]
         counts_sum = 0.0
         for z in range(fgs_counts_map.shape[2] - 1, -1, -1):
-            for fg_i in np.unique(np.array(np.where(fgs_counts_map[x, y, z, :] != 0.0))):
+            for fg_i in np.nonzero(fgs_counts_map[x, y, z, :])[0]:
                 counts_sum += utils.get_circle_mean(fgs_counts_map[:, :, z, fg_i], x, y, args["needle_radius_px"]) * \
                               fg_weights[fg_i]
-            for floater_i in np.unique(np.array(np.where(floaters_counts_map[x, y, z, :] != 0.0))):
+            for floater_i in np.nonzero(floaters_counts_map[x, y, z, :])[0]:
                 floater_weight = pdfs[1][z + args["min_z_coord"]]
                 counts_sum += utils.get_circle_mean(floaters_counts_map[:, :, z, floater_i], x, y,
                                                     args["needle_radius_px"]) * floater_weight
-            if counts_sum > 0:
-                pass
             if (counts_sum > needle_threshold) or z < slab_top_z:
                 height_map[x, y] = z + args["min_z_coord"]
                 break

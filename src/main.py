@@ -42,17 +42,24 @@ def post_analysis(args, real_time_maps, needle_maps):
     output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
                           args["max_y_coord"], center_x, center_y, 10,
                           f"{args['output_path_prefix']}_taus_real_time.png")
+    tau_ring_means = utils.get_ring_means_array(taus,
+                                                real_time_maps[0].shape[0] / 2,
+                                                real_time_maps[0].shape[1] / 2)
+    output.visualize_tau_by_radial_distance(tau_ring_means, f"{args['output_path_prefix']}_tau_radial_real_time.png")
+
     # real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 3)
     # taus = auto_corr.calculate_taus(real_time_acorrs)
     # output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
     #                       args["max_y_coord"], center_x, center_y, 10)
 
-    max_r = utils.get_max_r(real_time_maps[0].shape, real_time_maps[0].shape[0] / 2, real_time_maps[0].shape[1] / 2)
-    ring_means = utils.get_ring_means_array(real_time_maps, real_time_maps[0].shape[0] / 2,
-                                            real_time_maps[0].shape[1] / 2, max_r)
+    ring_means = utils.get_ring_means_array(np.mean(np.dstack(real_time_maps), axis=2),
+                                            real_time_maps[0].shape[0] / 2,
+                                            real_time_maps[0].shape[1] / 2)
     ring_means = (ring_means - center_z)
-    output.visualize_ring_means(ring_means, args["voxel_size_a"],
-                                f"{args['output_path_prefix']}_ring_means_real_time.png")
+    output.visualize_height_by_radial_distance(ring_means,
+                                               f"{args['output_path_prefix']}_height_radial_real_time.png",
+                                               sym=True,
+                                               yrange=[5, 20])
 
 
 def calculate_normal_pdf(min_z, max_z, mu, sigma):
@@ -73,7 +80,9 @@ def get_real_time_maps(args):
     floater_pdfs = calculate_normal_pdf(0, centers[2] * 2, centers[2],
                                         args["slab_thickness_a"] / args["voxel_size_a"])
     pdfs = (fg_pdfs, floater_pdfs)
-    with alive_bar(int(args["simulation_end_time_ns"] / args["interval_ns"]), force_tty=True) as bar:
+    stages_total = int(args["simulation_end_time_ns"] / args["interval_ns"] - args["simulation_start_time_ns"] /
+                       args["interval_ns"])
+    with alive_bar(stages_total, force_tty=True) as bar:
         for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
             fgs_counts_map, floaters_counts_map = get_individual_counts_maps(i, args)
             height_map = height_funcs.z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs,
@@ -189,13 +198,13 @@ def get_needle_threshold(args, density_maps):
 
 
 if __name__ == "__main__":
-    main()
+    # main()
     # print((utils.get_coordinate_list(4, 8, 185.0, 75.0)))
     # output.make_bw_legend(70)
     # output.make_matplot_legend(0, 80, 'gist_rainbow')
 
-    # pickle_dict = output.load_pickle("Outputs/08-10-2023-NTR/08-10-2023-NTR.pickle")
-    # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
+    pickle_dict = output.load_pickle("Outputs/08-10-2023-NTR/08-10-2023-NTR.pickle")
+    post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
 
     # print(utils.concentration_to_amount(0.001, 1000.0))
     # print(utils.amount_to_concentration(100.0, 1500.0))

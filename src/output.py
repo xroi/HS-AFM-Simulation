@@ -34,34 +34,10 @@ def load_pickle(file_name):
         return pickle.load(f)
 
 
-def visualize_auto_corr(acorrs):
-    # Line Plot:
-
-    # x_size, y_size, lags = acorrs.shape
-    # x_axis = [i for i in range(lags)]
-    # fig = go.Figure()
-    # for x, y in product(range(x_size), range(y_size)):
-    #     fig.add_trace(go.Scatter(x=x_axis, y=acorrs[x, y, :], mode='lines'))
-    # fig.show()
-
-    # Box Plot:
-    fig = go.Figure()
-    fig.add_trace(go.Box(y=acorrs[:, :, 1].flatten(), name="Lag=1"))
-    fig.add_trace(go.Box(y=acorrs[:, :, 2].flatten(), name="Lag=2"))
-    fig.add_trace(go.Box(y=acorrs[:, :, 3].flatten(), name="Lag=3"))
-    fig.add_trace(go.Box(y=acorrs[:, :, 4].flatten(), name="Lag=4"))
-    fig.add_trace(go.Box(y=acorrs[:, :, 5].flatten(), name="Lag=5"))
-    # fig.update_traces(boxpoints='all', jitter=0.3)
-    fig.update_layout(showlegend=False,
-                      yaxis=dict(title='Auto Correlation'),
-                      font=dict(size=20))
-    fig.show()
-
-
 def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, center_y, dtick, file_path):
     voxel_size = voxel_size / 10
     fig = go.Figure()
-    fig.add_trace(go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau (Microseconds)'}))
+    fig.add_trace(go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau (μs)'}))
     fig.layout.height = 500
     fig.layout.width = 500
     fig.update_layout(xaxis={
@@ -83,17 +59,43 @@ def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, cente
     fig.write_image(file_path)
 
 
-def visualize_ring_means(ring_means, voxel_size, file_path):
+def visualize_height_by_radial_distance(ring_means, file_path, sym=False, yrange=None):
     """ring means is a 2d array where axis1 are the means over time, and axis2 are different runs
     todo allow this and show on lower opacity"""
-    voxel_size = voxel_size / 10
     max_r = len(ring_means)
-    x = [i * voxel_size for i in range(max_r)]
-    fig = go.Figure(data=go.Scatter(x=x, y=[i * voxel_size for i in ring_means], mode='lines+markers'))
+    if sym:
+        x = [i for i in range(-max_r + 1, max_r)]
+        y = np.concatenate((np.flip(ring_means), ring_means))
+    else:
+        x = [i for i in range(max_r)]
+        y = ring_means
+    fig = go.Figure(data=go.Scatter(x=x, y=y, mode='lines+markers'))
     fig.update_layout(xaxis_title="Distance from center (nm)",
                       yaxis_title="Mean height (nm)",
                       font=dict(size=20),
-                      template="plotly_white")
+                      template="plotly_white",
+                      xaxis=dict(dtick=10))
+    if yrange:
+        fig.update_layout(yaxis_range=yrange)
+    fig.write_image(file_path)
+
+
+def visualize_tau_by_radial_distance(ring_means, file_path, sym=False, yrange=False):
+    max_r = len(ring_means)
+    if sym:
+        x = [i for i in range(-max_r + 1, max_r)]
+        y = np.concatenate((np.flip(ring_means), ring_means))
+    else:
+        x = [i for i in range(max_r)]
+        y = ring_means
+    fig = go.Figure(data=go.Scatter(x=x, y=y, mode='lines+markers'))
+    fig.update_layout(xaxis_title="Distance from center (nm)",
+                      yaxis_title="Mean tau (μs)",
+                      font=dict(size=20),
+                      template="plotly_white",
+                      xaxis=dict(dtick=10))
+    if yrange:
+        fig.update_layout(yaxis_range=yrange)
     fig.write_image(file_path)
 
 
@@ -125,3 +127,13 @@ def make_matplot_legend(min, max, color_map):
     cax = divider.append_axes("right", size="30%", pad=1)
     plt.colorbar(im, cax=cax, label="Height from center plane (nm)")
     plt.show()
+
+
+def visualize_energy_plot(y, file_path):
+    x = [i for i in range(len(y))]
+    fig = go.Figure(data=go.Scatter(x=x, y=y, mode='lines+markers'))
+    fig.update_layout(xaxis_title="Time (µs)",
+                      yaxis_title="Energy(kcal/mol)",
+                      font=dict(size=20),
+                      template="plotly_white")
+    fig.write_image("energy.png")

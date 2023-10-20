@@ -35,8 +35,9 @@ def get_ring_mask(arr, x, y, r):
     return arr[mask]
 
 
-def get_ring_means_array(arr, x, y, max_r):
-    arr = np.mean(np.dstack(arr), axis=2)
+def get_ring_means_array(arr, x, y):
+    """calculates the means by radial distance around x,y in 2d array arr."""
+    max_r = get_max_r(arr.shape, x, y)
     vals = []
     for r in range(max_r):
         vals.append(get_ring_mean(arr, x, y, r))

@@ -28,8 +28,8 @@ def main():
             output.output_gif(args, needle_maps,
                               f"{args['output_path_prefix']}_needle.gif", center_z, args["min_z_coord"],
                               args["max_z_coord"])
-
-    post_analysis(args, real_time_maps, needle_maps)
+    if args["output_post"]:
+        post_analysis(args, real_time_maps, needle_maps)
 
 
 def post_analysis(args, real_time_maps, needle_maps):
@@ -199,13 +199,13 @@ def get_needle_threshold(args, density_maps):
 
 
 if __name__ == "__main__":
-    # main()
+    main()
     # print((utils.get_coordinate_list(4, 8, 185.0, 75.0)))
     # output.make_bw_legend(70)
     # output.make_matplot_legend(0, 80, 'gist_rainbow')
 
-    pickle_dict = output.load_pickle("Outputs/08-10-2023-NTR/08-10-2023-NTR.pickle")
-    post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
+    # pickle_dict = output.load_pickle("Outputs/08-10-2023-NTR/08-10-2023-NTR.pickle")
+    # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
 
     # print(utils.concentration_to_amount(0.001, 1000.0))
     # print(utils.amount_to_concentration(100.0, 1500.0))

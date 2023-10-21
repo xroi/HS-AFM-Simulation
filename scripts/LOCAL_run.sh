@@ -4,5 +4,24 @@
 #SBATCH --mail-user=roi.eliasian@mail.huji.ac.il
 #SBATCH --mail-type=ALL
 
+if ($#argv != 2) then
+    echo "Syntax: $0 <input_folder_path> <output_prefix> <args_path>"
+    exit 0
+endif
+
+# Make sure you don't supply the --input-path and ----output-path-prefix arguments in the config file.
+
 source ../venv_new/bin/activate.csh
-python3 ../src/main.py @args.txt
+
+set INPUT_PATH=$1/
+set OUTPUT_PATH=$2
+set ARGS_PATH=$3
+
+mkdir -p $OUTPUT_PATH
+echo output path is $OUTPUT_PATH
+
+set SCRIPT=`readlink -f "$0"`
+set DIRNAME=`dirname "$SCRIPT"`
+
+python3 DIRNAME/../src/main.py --input-path $INPUT_PATH --output-path-prefix $OUTOUT_PATH @$1
+

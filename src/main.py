@@ -39,6 +39,7 @@ def post_analysis(args, real_time_maps, needle_maps):
     center_x = int(original_shape[0] / 2)
     center_y = int(original_shape[1] / 2)
     center_z = int(original_shape[2] / 2)
+    output.visualize_tcf_samples(real_time_acorrs, taus, 5, 5, f"{args['output_path_prefix']}_tcf_samples.png")
     output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
                           args["max_y_coord"], center_x, center_y, 10,
                           f"{args['output_path_prefix']}_taus_real_time.png")

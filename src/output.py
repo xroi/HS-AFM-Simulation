@@ -2,7 +2,9 @@ from PIL import Image
 import numpy as np
 import pickle
 import plotly.express as px
+import auto_corr
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -78,6 +80,38 @@ def visualize_height_by_radial_distance(ring_means, file_path, sym=False, yrange
     if yrange:
         fig.update_layout(yaxis_range=yrange)
     fig.write_image(file_path)
+
+
+def visualize_tcf_samples(acorrs, taus, dist_px, amount, file_path):
+    nlags = acorrs.shape[2]
+    fig = make_subplots(rows=1,
+                        cols=amount,
+                        subplot_titles=[f"({int(acorrs.shape[0] / 2) + i * dist_px},{int(acorrs.shape[1] / 2)})" for i
+                                        in range(nlags)],
+                        shared_yaxes='all')
+    x = [i for i in range(nlags)]
+    for i in range(amount):
+        x_coord = int(acorrs.shape[0] / 2) + i * dist_px
+        y_coord = int(acorrs.shape[1] / 2)
+        fig.add_trace(
+            go.Scatter(x=x, y=acorrs[x_coord, y_coord, :], mode='markers', line_color='#e00000'),
+            row=1,
+            col=i + 1
+        )
+        fig.add_trace(
+            go.Scatter(x=x, y=[auto_corr.model_func(j, taus[x_coord, y_coord]) for j in range(nlags)],
+                       line_color="#000be0"),
+            row=1, col=i + 1
+        )
+    fig.update_layout(font=dict(size=20),
+                      template="plotly_white",
+                      width=1000 * amount,
+                      height=1000,
+                      autosize=False,
+                      showlegend=False,
+                      yaxis_title="Correlation",
+                      xaxis_title="Time Lag (μs)")
+    fig.write_image(file_path, width=800 * amount, height=800, )
 
 
 def visualize_tau_by_radial_distance(ring_means, file_path, sym=False, yrange=False):

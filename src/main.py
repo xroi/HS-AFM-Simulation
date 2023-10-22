@@ -83,13 +83,15 @@ def get_real_time_maps(args):
     pdfs = (fg_pdfs, floater_pdfs)
     stages_total = int(args["simulation_end_time_ns"] / args["interval_ns"] - args["simulation_start_time_ns"] /
                        args["interval_ns"])
-    with alive_bar(stages_total, force_tty=True) as bar:
+    with alive_bar(stages_total, force_tty=args["progress_bar"]) as bar:
         for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
             fgs_counts_map, floaters_counts_map = get_individual_counts_maps(i, args)
             height_map = height_funcs.z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs,
                                               args)
             real_time_maps.append(height_map)
             bar()
+            if not args["progress_bar"]:
+                print(f"Finished {i}ns.", flush=True)
     return real_time_maps
 
 

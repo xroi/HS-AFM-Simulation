@@ -204,6 +204,13 @@ def parse_arguments():
                         type=str,
                         help="Path to output hdf5 file.",
                         required=True)
+    # ================#
+    # MISC PARAMETERS #
+    # ================#
+    parser.add_argument('--progress-bar',
+                        action=argparse.BooleanOptionalAction,
+                        help="If true, shows a progress bar.",
+                        required=True)
     if sys.argv[1].startswith('@'):
         args = vars(parser.parse_args(shlex.split(open(sys.argv[1][1:]).read())))
     else:

@@ -14,7 +14,6 @@ set OUTPUT_PATH=$1/
 set INPUT_PATH=$2/
 set CONFIG_PATH=$3
 
-
 # Note: Input path should be a folder, that has folder named 0-array_max
 # (generated with LOCAL_npctransport_sequential_batch.sh)
 

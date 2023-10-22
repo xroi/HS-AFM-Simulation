@@ -4,7 +4,7 @@
 #SBATCH --mail-user=roi.eliasian@mail.huji.ac.il
 #SBATCH --mail-type=ALL
 
-if ($#argv != 2) then
+if ($#argv != 3) then
     echo "Syntax: $0 <input_folder_path> <output_prefix> <args_path>"
     exit 0
 endif

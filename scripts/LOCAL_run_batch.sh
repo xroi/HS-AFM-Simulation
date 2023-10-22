@@ -5,7 +5,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --array=0-10
 
-if ($#argv != 2) then
+if ($#argv != 3) then
     echo "Syntax: $0 <input_folder_path> <output_folder_path> <config_path>"
     exit 0
 endif

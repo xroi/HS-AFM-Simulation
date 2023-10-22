@@ -13,12 +13,11 @@ endif
 set OUTPUT_PATH=$1/
 set INPUT_PATH=$2/
 set CONFIG_PATH=$3
-setenv SCRIPTDIR `dirname $0`
 
 
 # Note: Input path should be a folder, that has folder named 0-array_max
 # (generated with LOCAL_npctransport_sequential_batch.sh)
 
 mkdir -p $OUTPUT_PATH
-$SCRIPTDIR/LOCAL_run.sh $INPUT_PATH/$SLURM_ARRAY_TASK_ID $OUTPUT_PATH/$SLURM_ARRAY_TASK_ID $CONFIG_PATH
+/cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/LOCAL_run.sh $INPUT_PATH/$SLURM_ARRAY_TASK_ID $OUTPUT_PATH/$SLURM_ARRAY_TASK_ID $CONFIG_PATH
 

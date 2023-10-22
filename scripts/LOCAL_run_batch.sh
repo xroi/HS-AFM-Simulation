@@ -10,8 +10,8 @@ if ($#argv != 2) then
     exit 0
 endif
 
-set OUTPUT_PATH=$1/
-set INPUT_PATH=$2/
+set INPUT_PATH=$1/
+set OUTPUT_PATH=$2/
 set CONFIG_PATH=$3
 
 # Note: Input path should be a folder, that has folder named 0-array_max

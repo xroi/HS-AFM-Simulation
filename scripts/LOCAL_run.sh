@@ -20,8 +20,7 @@ set ARGS_PATH=$3
 mkdir -p $OUTPUT_PATH
 echo output path is $OUTPUT_PATH
 
-set SCRIPT=`readlink -f "$0"`
-set DIRNAME=`dirname "$SCRIPT"`
+setenv SCRIPTDIR `dirname $0`
 
-python3 DIRNAME/../src/main.py --input-path $INPUT_PATH --output-path-prefix $OUTOUT_PATH @$1
+python3 $SCRIPTDIR/../src/main.py --input-path $INPUT_PATH --output-path-prefix $OUTOUT_PATH @$1
 

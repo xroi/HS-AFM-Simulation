@@ -15,9 +15,14 @@ source /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/ven
 
 set INPUT_PATH=$1/
 set OUTPUT_PATH=$2
-set ARGS_PATH=$3
-mkdir -p $OUTPUT_PATH
+set ORIGINAL_ARGS_PATH=$3
+set ARGS_PATH=$OUTPUT_PATH._TEMP_ARGS.txt
 echo input path is $INPUT_PATH
 echo output path is $OUTPUT_PATH
-python3 /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/src/main.py --input-path $INPUT_PATH --output-path-prefix $OUTPUT_PATH @$ARGS_PATH
+
+cp $ORIGINAL_ARGS_PATH $ARGS_PATH
+echo "--input-path $INPUT_PATH" >> $ARGS_PATH
+echo "--output-path-prefix $OUTPUT_PATH" >> $ARGS_PATH
+
+python3 /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/src/main.py @$ARGS_PATH
 

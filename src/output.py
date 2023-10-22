@@ -58,7 +58,7 @@ def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, cente
                       xaxis={"title"    : 'Distance from center (nm)',
                              "tickangle": 0},
                       font=dict(size=20))
-    fig.write_image(file_path)
+    fig.write_image(file_path, width=500, height=500)
 
 
 def visualize_height_by_radial_distance(ring_means, file_path, sym=False, yrange=None):
@@ -111,7 +111,7 @@ def visualize_tcf_samples(acorrs, taus, dist_px, amount, file_path):
                       showlegend=False,
                       yaxis_title="Correlation",
                       xaxis_title="Time Lag (μs)")
-    fig.write_image(file_path, width=800 * amount, height=800, )
+    fig.write_image(file_path, width=800 * amount, height=800)
 
 
 def visualize_tau_by_radial_distance(ring_means, file_path, sym=False, yrange=False):
@@ -130,7 +130,7 @@ def visualize_tau_by_radial_distance(ring_means, file_path, sym=False, yrange=Fa
                       xaxis=dict(dtick=10))
     if yrange:
         fig.update_layout(yaxis_range=yrange)
-    fig.write_image(file_path)
+    fig.write_image(file_path, width=500, height=500)
 
 
 def taus_tick_val(i, voxel_size, center, dtick):

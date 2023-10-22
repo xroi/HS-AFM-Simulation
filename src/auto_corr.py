@@ -37,7 +37,10 @@ def calculate_taus(acorrs):
         if np.all(acorrs[x, y, :] == acorrs[x, y, :][0]):
             taus[x, y] = -1
             continue
-        opt_param, param_cov = curve_fit(f=model_func, xdata=xdata, ydata=acorrs[x, y, :],
-                                         full_output=False, p0=(1.0), maxfev=5000)
-        taus[x, y] = opt_param
+        try:
+            tau, param_cov = curve_fit(f=model_func, xdata=xdata, ydata=acorrs[x, y, :],
+                                       full_output=False, p0=(1.0), maxfev=5000)
+        except RuntimeError:
+            tau = -1
+        taus[x, y] = tau
     return taus

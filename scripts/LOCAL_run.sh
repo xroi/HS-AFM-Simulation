@@ -11,7 +11,7 @@ endif
 
 # Make sure you don't supply the --input-path and ----output-path-prefix arguments in the config file.
 
-source ../venv_new/bin/activate.csh
+source /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/venv_new/bin/activate.csh
 
 set INPUT_PATH=$1/
 set OUTPUT_PATH=$2

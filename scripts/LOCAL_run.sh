@@ -16,7 +16,6 @@ source ../venv_new/bin/activate.csh
 set INPUT_PATH=$1/
 set OUTPUT_PATH=$2
 set ARGS_PATH=$3
-
 mkdir -p $OUTPUT_PATH
 echo output path is $OUTPUT_PATH
 

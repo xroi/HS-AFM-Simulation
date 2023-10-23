@@ -156,6 +156,10 @@ def parse_arguments():
                         help="Determines the factor by which the distribution is multiplied which is then "
                              "added to the floater weight. ",
                         required=True)
+    parser.add_argument("--floater-general-factor",
+                        type=float,
+                        help="Determines the factor by which the final weight of the floater is multiplied",
+                        required=True)
 
     # Needle speed:
     speed_grp = parser.add_mutually_exclusive_group(required=True)

@@ -227,8 +227,12 @@ if __name__ == "__main__":
     # output.make_bw_legend(70)
     # output.make_matplot_legend(0, 80, 'gist_rainbow')
 
-    # pickle_dict = output.load_pickle("Outputs/08-10-2023-NTR/08-10-2023-NTR.pickle")
+    # pickle_dict = output.load_pickle("Outputs/12-10-2023-NTR-BATCH/0.pickle")
     # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
+
+    # args = arguments.parse_arguments()
+    # pickle_dict = output.load_pickle("Outputs/12-10-2023-NTR-BATCH/0.pickle")
+    # needle_maps = get_needle_maps(pickle_dict["real_time_maps"], args)
 
     # print(utils.concentration_to_amount(0.001, 1000.0))
     # print(utils.amount_to_concentration(100.0, 1500.0))
@@ -243,6 +247,7 @@ if __name__ == "__main__":
     # for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
     #     fgs_counts_map, floaters_counts_map, floater_sizes = get_individual_counts_maps(i, args)
     #     fg_maps.append(floaters_counts_map)
+    #     print(i)
     # inner, outer = utils.calculate_z_distribution(np.stack(fg_maps, axis=-1),
     #                                               int((args["tunnel_radius_a"] - args["slab_thickness_a"] / 2) / args[
     #                                                   "voxel_size_a"]))

@@ -87,7 +87,7 @@ def z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs
                 else:
                     floater_weight = DATA_distributions.INNER_DIST[z] * args["floater_distribution_factor"]
                 floater_weight += floater_sizes[floater_i] * args["floater_size_factor"]
-
+                floater_weight *= args["floater_general_factor"]
                 counts_sum += utils.get_circle_mean(floaters_counts_map[:, :, z, floater_i], x, y,
                                                     args["needle_radius_px"]) * floater_weight
             if (counts_sum > needle_threshold) or z < slab_top_z:

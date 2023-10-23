@@ -2,12 +2,13 @@ import h5py
 import numpy as np
 from alive_progress import alive_bar
 import scipy.stats
-
+from itertools import product
 import height_funcs
 import args as arguments
 import utils
 import output
 import auto_corr
+from scipy.ndimage import distance_transform_cdt
 
 
 def main():
@@ -39,7 +40,6 @@ def post_analysis(args, real_time_maps, needle_maps):
     center_x = int(original_shape[0] / 2)
     center_y = int(original_shape[1] / 2)
     center_z = int(original_shape[2] / 2)
-    output.visualize_tcf_samples(real_time_acorrs, taus, 5, 5, f"{args['output_path_prefix']}_tcf_samples.png")
     output.visualize_taus(taus, args["voxel_size_a"], args["min_x_coord"], args["max_x_coord"], args["min_y_coord"],
                           args["max_y_coord"], center_x, center_y, 10,
                           f"{args['output_path_prefix']}_taus_real_time.png")
@@ -61,6 +61,7 @@ def post_analysis(args, real_time_maps, needle_maps):
                                                f"{args['output_path_prefix']}_height_radial_real_time.png",
                                                sym=True,
                                                yrange=[5, 20])
+    output.visualize_tcf_samples(real_time_acorrs, taus, 5, 5, f"{args['output_path_prefix']}_tcf_samples.png")
 
 
 def calculate_normal_pdf(min_z, max_z, mu, sigma):
@@ -85,9 +86,9 @@ def get_real_time_maps(args):
                        args["interval_ns"])
     with alive_bar(stages_total, force_tty=args["progress_bar"]) as bar:
         for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
-            fgs_counts_map, floaters_counts_map = get_individual_counts_maps(i, args)
+            fgs_counts_map, floaters_counts_map, floater_sizes = get_individual_counts_maps(i, args)
             height_map = height_funcs.z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs,
-                                              args)
+                                              floater_sizes, args)
             real_time_maps.append(height_map)
             bar()
             if not args["progress_bar"]:
@@ -95,22 +96,37 @@ def get_real_time_maps(args):
     return real_time_maps
 
 
-# def get_combined_counts_map(time, args):
-#     """
-#     Deprecated, Combines counts Maps of all floaters in a HDF5 file, by summing them up.
-#     """
-#     x_size = args["max_x_coord"] - args["min_x_coord"]
-#     y_size = args["max_y_coord"] - args["min_y_coord"]
-#     z_size = args["max_z_coord"] - args["min_z_coord"]
-#
-#     with h5py.File(f"{args['existing_files_path']}/{time}.pb.hdf5", "r") as f:
-#         combined_counts_map = np.zeros(shape=(x_size, y_size, z_size))
-#         data = f["fg_xyz_hist"]
-#         for key in data.keys():
-#             combined_counts_map += np.array(data[key])[args["min_x_coord"]:args["max_x_coord"],
-#                                    args["min_y_coord"]:args["max_y_coord"],
-#                                    args["min_z_coord"]:args["max_z_coord"]]
-#     return combined_counts_map
+def enlarge_floater_size(floater_individual_counts_maps, floater_sizes):
+    shape = floater_individual_counts_maps.shape
+    new_maps = np.zeros(shape=shape)
+    mid_x = shape[0] / 2
+    mid_y = shape[1] / 2
+    mid_z = shape[2] / 2
+    # Calculating only len(floater_sized) masks and simply shifting them instead of calculating a mask for every point,
+    # this led to about 70% runtime decrease, and great enjoyment on my part :)
+    mid_masks = [
+        utils.get_ball_mask(floater_individual_counts_maps[:, :, :, 0], mid_x, mid_y, mid_z,
+                            floater_sizes[i]) for i in range(len(floater_sizes))]
+    for (x, y, z, i) in zip(*np.nonzero(floater_individual_counts_maps)):
+        r = floater_sizes[i]
+        shift_x = int(x - mid_x)
+        shift_y = int(y - mid_y)
+        shift_z = int(z - mid_z)
+        mask = np.roll(mid_masks[i], (shift_x, shift_y, shift_z), axis=(0, 1, 2))
+        if shift_x > 0:
+            mask[:shift_x, :, :] = 0
+        else:
+            mask[shift_x:, :, :] = 0
+        if shift_y > 0:
+            mask[:, :shift_y, :] = 0
+        else:
+            mask[:, shift_y:, :] = 0
+        if shift_z > 0:
+            mask[:, :, :shift_z] = 0
+        else:
+            mask[:, :, shift_z:] = 0
+        new_maps[:, :, :, i][mask] += floater_individual_counts_maps[x, y, z, i]
+    return new_maps
 
 
 def get_individual_counts_maps(time, args):
@@ -131,14 +147,19 @@ def get_individual_counts_maps(time, args):
                                                     args["min_z_coord"]:args["max_z_coord"]]
         floater_data = f["floater_xyz_hist"]
         floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
+        floater_sizes = []
         if args["floaters_resistance"]:
             for i, key in enumerate(floater_data.keys()):
                 floater_individual_counts_maps[:, :, :, i] = np.array(floater_data[key])[
                                                              args["min_x_coord"]:args["max_x_coord"],
                                                              args["min_y_coord"]:args["max_y_coord"],
                                                              args["min_z_coord"]:args["max_z_coord"]]
+                size = int(float(''.join(map(str, list(filter(str.isdigit, key))))) / args["voxel_size_a"])
+                floater_sizes.append(size)
+            if args["enlarge_floaters"]:
+                floater_individual_counts_maps = enlarge_floater_size(floater_individual_counts_maps, floater_sizes)
     # return np.append(fg_individual_counts_maps, floater_individual_counts_maps, axis=3)
-    return fg_individual_counts_maps, floater_individual_counts_maps
+    return fg_individual_counts_maps, floater_individual_counts_maps, floater_sizes
 
 
 def get_needle_maps(real_time_maps, args):
@@ -211,3 +232,19 @@ if __name__ == "__main__":
 
     # print(utils.concentration_to_amount(0.001, 1000.0))
     # print(utils.amount_to_concentration(100.0, 1500.0))
+
+    # arr = np.zeros(shape=(100, 100, 100))
+    # for _ in range(5000):
+    #     utils.get_ball_mask(arr, 50, 50, 50, 1)
+
+    # args = arguments.parse_arguments()
+    # print(args)
+    # fg_maps = []
+    # for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
+    #     fgs_counts_map, floaters_counts_map, floater_sizes = get_individual_counts_maps(i, args)
+    #     fg_maps.append(floaters_counts_map)
+    # inner, outer = utils.calculate_z_distribution(np.stack(fg_maps, axis=-1),
+    #                                               int((args["tunnel_radius_a"] - args["slab_thickness_a"] / 2) / args[
+    #                                                   "voxel_size_a"]))
+    # print(inner.tolist())
+    # print(outer.tolist())

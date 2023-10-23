@@ -86,8 +86,11 @@ def visualize_tcf_samples(acorrs, taus, dist_px, amount, file_path):
     nlags = acorrs.shape[2]
     fig = make_subplots(rows=1,
                         cols=amount,
-                        subplot_titles=[f"({int(acorrs.shape[0] / 2) + i * dist_px},{int(acorrs.shape[1] / 2)})" for i
-                                        in range(nlags)],
+                        subplot_titles=[
+                            f"({int(acorrs.shape[0] / 2) + i * dist_px},{int(acorrs.shape[1] / 2)}) tau="
+                            f"{taus[int(acorrs.shape[0] / 2) + i * dist_px, int(acorrs.shape[1] / 2)]}μs"
+                            for i
+                            in range(nlags)],
                         shared_yaxes='all')
     x = [i for i in range(nlags)]
     for i in range(amount):

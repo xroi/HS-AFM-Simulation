@@ -3,7 +3,7 @@ import numpy as np
 AVOGADRO = 6.0221408e+23
 
 
-def get_ball_mask(arr, x, y, z, r):
+def get_ball_vals(arr, x, y, z, r):
     """returns a mask for a ball of radius r, around x,y,z, in 3d array arr."""
     x_min = max(0, x - r)
     x_max = min(arr.shape[0], x + r + 1)
@@ -16,7 +16,13 @@ def get_ball_mask(arr, x, y, z, r):
     return sub_arr[((xx - (x - x_min)) ** 2 + (yy - (y - y_min)) ** 2 + (zz - (z - z_min)) ** 2) <= r ** 2]
 
 
-def get_circle_mask(arr, x, y, r):
+def get_ball_mask(arr, x, y, z, r):
+    xx, yy, zz = np.ogrid[:arr.shape[0], :arr.shape[1], :arr.shape[2]]
+    dist_from_center = np.sqrt((xx - x) ** 2 + (yy - y) ** 2 + (zz - z) ** 2)
+    return dist_from_center < r
+
+
+def get_circle_vals(arr, x, y, r):
     """return a mask for a circle of radius r around x,y in 2d array ayy"""
     x_min = max(0, x - r)
     x_max = min(arr.shape[0], x + r + 1)
@@ -27,7 +33,18 @@ def get_circle_mask(arr, x, y, r):
     return sub_arr[((xx - (x - x_min)) ** 2 + (yy - (y - y_min)) ** 2) <= r ** 2]
 
 
-def get_ring_mask(arr, x, y, r):
+def get_anti_circle_vals(arr, x, y, r):
+    """return a mask for a circle of radius r around x,y in 2d array ayy"""
+    x_min = max(0, x - r)
+    x_max = min(arr.shape[0], x + r + 1)
+    y_min = max(0, y - r)
+    y_max = min(arr.shape[1], y + r + 1)
+    sub_arr = arr[x_min:x_max, y_min:y_max]
+    xx, yy = np.mgrid[:sub_arr.shape[0], :sub_arr.shape[1]]
+    return sub_arr[((xx - (x - x_min)) ** 2 + (yy - (y - y_min)) ** 2) > r ** 2]
+
+
+def get_ring_vals(arr, x, y, r):
     """return a mask for the outline of a circle of radius r around x,y in 2d array ayy"""
     y_indices, x_indices = np.indices(arr.shape)
     distance = np.sqrt((x_indices - x) ** 2 + (y_indices - y) ** 2)
@@ -49,23 +66,23 @@ def get_max_r(shape, x, y):
 
 
 def get_ring_mean(arr, x, y, r):
-    return np.mean(get_ring_mask(arr, x, y, r))
+    return np.mean(get_ring_vals(arr, x, y, r))
 
 
 def get_ball_mean(arr, x, y, z, r):
-    return np.mean(get_ball_mask(arr, x, y, z, r))
+    return np.mean(get_ball_vals(arr, x, y, z, r))
 
 
 def get_ball_median(arr, x, y, z, r):
-    return np.median(get_ball_mask(arr, x, y, z, r))
+    return np.median(get_ball_vals(arr, x, y, z, r))
 
 
 def get_circle_median(arr, x, y, r):
-    return np.median(get_circle_mask(arr, x, y, r))
+    return np.median(get_circle_vals(arr, x, y, r))
 
 
 def get_circle_mean(arr, x, y, r):
-    return np.mean(get_circle_mask(arr, x, y, r))
+    return np.mean(get_circle_vals(arr, x, y, r))
 
 
 def is_in_circle(x, y, r, center_x, center_y):
@@ -79,7 +96,7 @@ def median_threshold(density_maps, r, frac):
     z = int(density_maps[0].shape[2] / 2)
     vals = []
     for density_map in density_maps:
-        arr = get_ball_mask(density_map, x, y, z, r)
+        arr = get_ball_vals(density_map, x, y, z, r)
         for val in arr:
             vals.append(val)
     return np.median(vals) * frac  # todo this is usually 0.
@@ -128,3 +145,23 @@ def concentration_to_amount(molar, box_side_a):
 def amount_to_concentration(amount, box_side_a):
     volume = np.power(box_side_a, 3)
     return amount / (AVOGADRO * volume * 1e-27)
+
+
+def calculate_z_distribution(maps, inner_r):
+    """axes: x,y,z,fg_i,t"""
+    centers = (int(maps.shape[0] / 2), int(maps.shape[1] / 2))
+    maps = np.sum(maps, axis=(3, 4))
+    inner_distribution = []
+    outer_distribution = []
+    for z in range(maps.shape[2]):
+        inner_val = 0
+        outer_val = 0
+        inner_val += np.sum(get_circle_vals(maps[:, :, z], centers[0], centers[1], inner_r))
+        outer_val += np.sum(get_anti_circle_vals(maps[:, :, z], centers[0], centers[1], inner_r))
+        inner_distribution.append(inner_val)
+        outer_distribution.append(outer_val)
+    inner_distribution = np.array(inner_distribution)
+    outer_distribution = np.array(outer_distribution)
+    inner_distribution = inner_distribution / np.linalg.norm(inner_distribution)
+    outer_distribution = outer_distribution / np.linalg.norm(outer_distribution)
+    return inner_distribution, outer_distribution

@@ -146,6 +146,16 @@ def parse_arguments():
                         type=float,
                         help="The sigma value for the normal distribution used to weigh floaters.",
                         required=True)
+    parser.add_argument("--floater-size-factor",
+                        type=float,
+                        help="Determines the factor by which the floater size in angstrom is multiplied which is then "
+                             "added to the floater weight. (0.125 to be proportional with 8A fg beads)",
+                        required=True)
+    parser.add_argument("--floater-distribution-factor",
+                        type=float,
+                        help="Determines the factor by which the distribution is multiplied which is then "
+                             "added to the floater weight. ",
+                        required=True)
 
     # Needle speed:
     speed_grp = parser.add_mutually_exclusive_group(required=True)
@@ -211,6 +221,11 @@ def parse_arguments():
                         action=argparse.BooleanOptionalAction,
                         help="If true, shows a progress bar.",
                         required=True)
+    parser.add_argument('--enlarge-floaters',
+                        action=argparse.BooleanOptionalAction,
+                        help="If true, spreads floater density based on the radius in the type name (in angstrom)",
+                        required=True)
+
     if sys.argv[1].startswith('@'):
         args = vars(parser.parse_args(shlex.split(open(sys.argv[1][1:]).read())))
     else:

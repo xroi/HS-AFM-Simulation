@@ -234,7 +234,7 @@ if __name__ == "__main__":
     # pickle_dict = output.load_pickle("Outputs/12-10-2023-NTR-BATCH/0.pickle")
     # needle_maps = get_needle_maps(pickle_dict["real_time_maps"], args)
 
-    # print(utils.concentration_to_amount(0.001, 1000.0))
+    # print(utils.concentration_to_amount(200e-6, 1500.0))
     # print(utils.amount_to_concentration(100.0, 1500.0))
 
     # arr = np.zeros(shape=(100, 100, 100))

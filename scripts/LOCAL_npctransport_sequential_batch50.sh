@@ -1,9 +1,9 @@
 #!/bin/csh -f
 #SBATCH --mem=2g
 #SBATCH --time=7-0
-#SBATCH --mail-user=roi.eliasian@mail.huji.ac.il
 #SBATCH --mail-type=ALL
 #SBATCH --array=0-50
+
 
 if ($#argv != 2) then
     echo "Syntax: $0 <output_folder_path> <config_path>"

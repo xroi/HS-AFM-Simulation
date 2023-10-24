@@ -22,6 +22,14 @@ def get_ball_mask(arr, x, y, z, r):
     return dist_from_center < r
 
 
+def get_top_of_ball_mask(arr, x, y, z, r):
+    ball = get_ball_mask(arr, x, y, z, r)
+    smaller_ball = get_ball_mask(arr, x, y, z, r - 1)
+    mask = np.logical_xor(ball, smaller_ball)
+    mask[:, :, :z] = 0
+    return mask
+
+
 def get_circle_vals(arr, x, y, r):
     """return a mask for a circle of radius r around x,y in 2d array ayy"""
     x_min = max(0, x - r)

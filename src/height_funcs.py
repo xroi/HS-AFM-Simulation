@@ -79,15 +79,13 @@ def z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs
                 counts_sum += utils.get_circle_mean(fgs_counts_map[:, :, z, fg_i], x, y, args["needle_radius_px"]) * \
                               fg_weights[fg_i]
             for floater_i in np.nonzero(floaters_counts_map[x, y, z, :])[0]:
-                # floater_weight = pdfs[1][z + args["min_z_coord"]] + floater_sizes[floater_i] * args[
-                #     "floater_size_factor"]
-                # todo maybe not linear size based
-                if is_in_center:
-                    floater_weight = DATA_distributions.INNER_DIST[z] * args["floater_distribution_factor"]
-                else:
-                    floater_weight = DATA_distributions.INNER_DIST[z] * args["floater_distribution_factor"]
-                floater_weight += floater_sizes[floater_i] * args["floater_size_factor"]
-                floater_weight *= args["floater_general_factor"]
+                floater_weight = pdfs[1][z + args["min_z_coord"]] + (floater_sizes[floater_i] ** 3) * args[
+                    "floater_size_factor"]  # if is_in_center:
+                #     floater_weight = DATA_distributions.INNER_DIST[z] * args["floater_distribution_factor"]
+                # else:
+                #     floater_weight = DATA_distributions.OUTER_DIST[z] * args["floater_distribution_factor"]
+                # floater_weight += (floater_sizes[floater_i] ** 3) * args["floater_size_factor"]
+                # floater_weight *= args["floater_general_factor"]
                 counts_sum += utils.get_circle_mean(floaters_counts_map[:, :, z, floater_i], x, y,
                                                     args["needle_radius_px"]) * floater_weight
             if (counts_sum > needle_threshold) or z < slab_top_z:

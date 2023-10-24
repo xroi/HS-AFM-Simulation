@@ -99,14 +99,14 @@ def get_real_time_maps(args):
 def enlarge_floater_size(floater_individual_counts_maps, floater_sizes):
     shape = floater_individual_counts_maps.shape
     new_maps = np.zeros(shape=shape)
-    mid_x = shape[0] / 2
-    mid_y = shape[1] / 2
-    mid_z = shape[2] / 2
+    mid_x = int(shape[0] / 2)
+    mid_y = int(shape[1] / 2)
+    mid_z = int(shape[2] / 2)
     # Calculating only len(floater_sized) masks and simply shifting them instead of calculating a mask for every point,
     # this led to about 70% runtime decrease, and great enjoyment on my part :)
     mid_masks = [
-        utils.get_ball_mask(floater_individual_counts_maps[:, :, :, 0], mid_x, mid_y, mid_z,
-                            floater_sizes[i]) for i in range(len(floater_sizes))]
+        utils.get_top_of_ball_mask(floater_individual_counts_maps[:, :, :, 0], mid_x, mid_y, mid_z,
+                                   floater_sizes[i]) for i in range(len(floater_sizes))]
     for (x, y, z, i) in zip(*np.nonzero(floater_individual_counts_maps)):
         r = floater_sizes[i]
         shift_x = int(x - mid_x)

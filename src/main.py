@@ -103,7 +103,7 @@ def enlarge_floater_size(floater_individual_counts_maps, floater_sizes):
     mid_y = int(shape[1] / 2)
     mid_z = int(shape[2] / 2)
     # Calculating only len(floater_sized) masks and simply shifting them instead of calculating a mask for every point,
-    # this led to about 70% runtime decrease, and great enjoyment on my part :)
+    # this led to about 70% runtime decrease, and great enjoyment on my part  :)
     mid_masks = [
         utils.get_top_of_ball_mask(floater_individual_counts_maps[:, :, :, 0], mid_x, mid_y, mid_z,
                                    floater_sizes[i]) for i in range(len(floater_sizes))]

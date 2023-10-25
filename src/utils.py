@@ -90,8 +90,6 @@ def get_circle_median(arr, x, y, r):
 
 
 def get_circle_mean(arr, x, y, r):
-    if r == 1:
-        return np.mean([arr[x, y], arr[x + 1]])
     return np.mean(get_circle_vals(arr, x, y, r))
 
 

@@ -141,19 +141,18 @@ def get_individual_counts_maps(time, args):
         fg_data = f["fg_xyz_hist"]
         fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(fg_data.keys())))
         for i, key in enumerate(fg_data.keys()):
-            fg_individual_counts_maps[:, :, :, i] = np.array(fg_data[key])[
-                                                    args["min_x_coord"]:args["max_x_coord"],
-                                                    args["min_y_coord"]:args["max_y_coord"],
-                                                    args["min_z_coord"]:args["max_z_coord"]]
+            fg_individual_counts_maps[:, :, :, i] = np.array(fg_data[key][args["min_x_coord"]:args["max_x_coord"],
+                                                             args["min_y_coord"]:args["max_y_coord"],
+                                                             args["min_z_coord"]:args["max_z_coord"]])
         floater_data = f["floater_xyz_hist"]
         floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
         floater_sizes = []
         if args["floaters_resistance"]:
             for i, key in enumerate(floater_data.keys()):
-                floater_individual_counts_maps[:, :, :, i] = np.array(floater_data[key])[
-                                                             args["min_x_coord"]:args["max_x_coord"],
-                                                             args["min_y_coord"]:args["max_y_coord"],
-                                                             args["min_z_coord"]:args["max_z_coord"]]
+                floater_individual_counts_maps[:, :, :, i] = np.array(
+                    floater_data[key][args["min_x_coord"]:args["max_x_coord"],
+                    args["min_y_coord"]:args["max_y_coord"],
+                    args["min_z_coord"]:args["max_z_coord"]])
                 size = int(float(''.join(map(str, list(filter(str.isdigit, key))))) / args["voxel_size_a"])
                 floater_sizes.append(size)
             if args["enlarge_floaters"]:

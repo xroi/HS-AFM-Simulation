@@ -80,8 +80,8 @@ def z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs
                               fg_weights[fg_i]
             for floater_i in np.nonzero(floaters_counts_map[x, y, z, :])[0]:
                 floater_weight = pdfs[1][
-                                     z + args["min_z_coord"]] * (
-                                         floater_sizes[floater_i] ** 3) * args["floater_general_factor"]
+                                     z + args["min_z_coord"]] * (floater_sizes[floater_i] ** 3) * args[
+                                     "floater_general_factor"]
                 # floater_weight *= args["floater_general_factor"]
                 #     floater_weight = DATA_distributions.INNER_DIST[z] * args["floater_distribution_factor"]
                 # else:

@@ -8,13 +8,14 @@
 
 SECOND_JOB_OFFSET=50
 
-if [ $# != 2 ]; then
-  echo "Syntax: $0 <output_folder_path> <config_path>"
+if [ $# != 3 ]; then
+  echo "Syntax: $0 <output_folder_path> <config_path> <step>"
   exit 1
 fi
 
 OUTPUT_PATH=${1}/
 CONFIG_PATH=${2}
+STEP=${3}
 mkdir -p $OUTPUT_PATH
 
 declare -a IDs=()
@@ -25,7 +26,7 @@ echo IDs: ${IDs[@]}
 echo "Running jobs"
 declare -a PIDs=()
 for ID in ${IDs[@]}; do
-  /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/LOCAL_npctransport_sequential.sh 1 1000 1000 $OUTPUT_PATH/${ID} $CONFIG_PATH &
+  /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/LOCAL_npctransport_sequential.sh 1 $STEP $STEP $OUTPUT_PATH/${ID} $CONFIG_PATH &
   PID=$!
   PIDs+=($PID)
   echo $PID submitted, workid $ID

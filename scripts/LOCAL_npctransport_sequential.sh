@@ -32,6 +32,7 @@ set j=$2
 
 while (1)
     $IMP $IMP_FOLDER/bin/fg_simulation --output $OUTPUT_PATH$i.pb --conformations $OUTPUT_PATH$i.movie.rmf --final_conformations $OUTPUT_PATH$i.pb.final.rmf --restart $OUTPUT_PATH$j.pb
+    /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/LOCAL_keep_biggest_pb.sh $OUTPUT_PATH
     echo cur: $i using:$j
     @ i+=$3
     @ j+=$3

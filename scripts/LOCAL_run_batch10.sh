@@ -2,7 +2,7 @@
 #SBATCH --mem=2g
 #SBATCH --time=7-0
 #SBATCH --mail-type=ALL
-#SBATCH --array=0-10
+#SBATCH --array=0-9
 
 if ($#argv != 3) then
     echo "Syntax: $0 <input_folder_path> <output_folder_path> <config_path>"

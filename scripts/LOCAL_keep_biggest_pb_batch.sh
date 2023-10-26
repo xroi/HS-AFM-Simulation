@@ -5,7 +5,7 @@ if [ $# != 2 ]; then
   exit 1
 fi
 
-for (( i=0 ; i<=${2} ; i++ ));
+for (( i=0 ; i<${2} ; i++ ));
 do
    tree -fQFi --sort=size ${1}/${i}/ | grep \.pb\"$ | tail +3 | xargs rm
 done

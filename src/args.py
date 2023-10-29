@@ -120,19 +120,19 @@ def parse_arguments() -> dict[str, any]:
                         type=float,
                         help="The fraction of the median to take for the threshold. (for calculating "
                              "the threshold if calc_needle_threshold is true)")
-    parser.add_argument("--needle-custom-threshold",
+    parser.add_argument("--tip-custom-threshold",
                         type=float,
                         help="The density under which the needle ignores. Used for all z funcs.")
-    parser.add_argument("--needle-radius-px",
+    parser.add_argument("--tip-radius-px",
                         type=int,
                         help="Determines how far around the origin pixel the needle considers for determining pixel "
                              "height. (Assuming ball shape). Should be greater than 1. Only used for z_top z func.",
                         required=True)
-    parser.add_argument("--needle-fraction",
-                        type=float,
-                        help="Determined the fraction of the sum of density needed to be above the z value in order "
-                             "to return in. Should be between 0 and 1 (inclusive). only used for z_fraction z func.",
-                        required=True)
+    # parser.add_argument("--needle-fraction",
+    #                     type=float,
+    #                     help="Determined the fraction of the sum of density needed to be above the z value in order "
+    #                          "to return in. Should be between 0 and 1 (inclusive). only used for z_fraction z func.",
+    #                     required=True)
     parser.add_argument("--floaters-resistance",
                         action=argparse.BooleanOptionalAction,
                         help="Determines whether floaters (NTRs and Passive Molecules) offer resistance to the "
@@ -163,15 +163,15 @@ def parse_arguments() -> dict[str, any]:
 
     # Needle speed:
     speed_grp = parser.add_mutually_exclusive_group(required=True)
-    speed_grp.add_argument("--needle-time-per-line-ns",
+    speed_grp.add_argument("--time-per-line-ns",
                            type=float,
                            help="Determines the amount of time it takes for a needle to pass a full line. Mutually "
-                                "exclusive with needle-time-per-pixel-ns.")
-    speed_grp.add_argument("--needle-time-per-pixel-ns",
+                                "exclusive with time-per-pixel-ns.")
+    speed_grp.add_argument("--time-per-pixel-ns",
                            type=float,
                            help="Determines the amount of time it takes for a needle to pass a single pixel. Mutually "
-                                "exclusive with needle-time-per-line-ns.")
-    parser.add_argument("--needle-time-between-scans-ns",
+                                "exclusive with time-per-line-ns.")
+    parser.add_argument("--time-between-scans-ns",
                         type=float,
                         help="Determines the amount of time it takes for the needle to return to the starting point "
                              "to start the next frame.",

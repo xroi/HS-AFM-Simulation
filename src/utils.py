@@ -3,7 +3,7 @@ import numpy as np
 AVOGADRO = 6.0221408e+23
 
 
-def get_ball_vals(arr, x, y, z, r):
+def get_ball_vals(arr: np.ndarray, x: int, y: int, z: int, r: int):
     """returns a mask for a ball of radius r, around x,y,z, in 3d array arr."""
     x_min = max(0, x - r)
     x_max = min(arr.shape[0], x + r + 1)
@@ -16,13 +16,13 @@ def get_ball_vals(arr, x, y, z, r):
     return sub_arr[((xx - (x - x_min)) ** 2 + (yy - (y - y_min)) ** 2 + (zz - (z - z_min)) ** 2) <= r ** 2]
 
 
-def get_ball_mask(arr, x, y, z, r):
+def get_ball_mask(arr: np.ndarray, x: int, y: int, z: int, r: int):
     xx, yy, zz = np.ogrid[:arr.shape[0], :arr.shape[1], :arr.shape[2]]
     dist_from_center = np.sqrt((xx - x) ** 2 + (yy - y) ** 2 + (zz - z) ** 2)
     return dist_from_center < r
 
 
-def get_top_of_ball_mask(arr, x, y, z, r):
+def get_top_of_ball_mask(arr: np.ndarray, x: int, y: int, z: int, r: int):
     ball = get_ball_mask(arr, x, y, z, r)
     smaller_ball = get_ball_mask(arr, x, y, z, r - 1)
     mask = np.logical_xor(ball, smaller_ball)
@@ -30,7 +30,7 @@ def get_top_of_ball_mask(arr, x, y, z, r):
     return mask
 
 
-def get_circle_vals(arr, x, y, r):
+def get_circle_vals(arr: np.ndarray, x: int, y: int, r: int):
     """return a mask for a circle of radius r around x,y in 2d array ayy"""
     x_min = max(0, x - r)
     x_max = min(arr.shape[0], x + r + 1)
@@ -41,7 +41,7 @@ def get_circle_vals(arr, x, y, r):
     return sub_arr[((xx - (x - x_min)) ** 2 + (yy - (y - y_min)) ** 2) <= r ** 2]
 
 
-def get_anti_circle_vals(arr, x, y, r):
+def get_anti_circle_vals(arr: np.ndarray, x: int, y: int, r: int):
     """return a mask for a circle of radius r around x,y in 2d array ayy"""
     x_min = max(0, x - r)
     x_max = min(arr.shape[0], x + r + 1)
@@ -52,7 +52,7 @@ def get_anti_circle_vals(arr, x, y, r):
     return sub_arr[((xx - (x - x_min)) ** 2 + (yy - (y - y_min)) ** 2) > r ** 2]
 
 
-def get_ring_vals(arr, x, y, r):
+def get_ring_vals(arr: np.ndarray, x: int, y: int, r: int):
     """return a mask for the outline of a circle of radius r around x,y in 2d array ayy"""
     y_indices, x_indices = np.indices(arr.shape)
     distance = np.sqrt((x_indices - x) ** 2 + (y_indices - y) ** 2)
@@ -60,7 +60,7 @@ def get_ring_vals(arr, x, y, r):
     return arr[mask]
 
 
-def get_ring_means_array(arr, x, y):
+def get_ring_means_array(arr: np.ndarray, x: int, y: int):
     """calculates the means by radial distance around x,y in 2d array arr."""
     max_r = get_max_r(arr.shape, x, y)
     vals = []
@@ -69,48 +69,35 @@ def get_ring_means_array(arr, x, y):
     return np.array(vals)
 
 
-def get_max_r(shape, x, y):
+def get_max_r(shape: tuple[int, int], x: int, y: int):
     return int(min([x, shape[0] - x - 1, y, shape[1] - y - 1]))
 
 
-def get_ring_mean(arr, x, y, r):
+def get_ring_mean(arr: np.ndarray, x: int, y: int, r: int):
     return np.mean(get_ring_vals(arr, x, y, r))
 
 
-def get_ball_mean(arr, x, y, z, r):
+def get_ball_mean(arr: np.ndarray, x: int, y: int, z: int, r: int):
     return np.mean(get_ball_vals(arr, x, y, z, r))
 
 
-def get_ball_median(arr, x, y, z, r):
+def get_ball_median(arr: np.ndarray, x: int, y: int, z: int, r: int):
     return np.median(get_ball_vals(arr, x, y, z, r))
 
 
-def get_circle_median(arr, x, y, r):
+def get_circle_median(arr: np.ndarray, x: int, y: int, r: int):
     return np.median(get_circle_vals(arr, x, y, r))
 
 
-def get_circle_mean(arr, x, y, r):
+def get_circle_mean(arr: np.ndarray, x: int, y: int, r: int):
     return np.mean(get_circle_vals(arr, x, y, r))
 
 
-def is_in_circle(x, y, r, center_x, center_y):
+def is_in_circle(x: int, y: int, r: int, center_x: int, center_y: int):
     return np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2) < r
 
 
-def median_threshold(density_maps, r, frac):
-    """Calculates a threshold for densities using a fraction of the median in a ball of radius r around the center."""
-    x = int(density_maps[0].shape[0] / 2)
-    y = int(density_maps[0].shape[1] / 2)
-    z = int(density_maps[0].shape[2] / 2)
-    vals = []
-    for density_map in density_maps:
-        arr = get_ball_vals(density_map, x, y, z, r)
-        for val in arr:
-            vals.append(val)
-    return np.median(vals) * frac  # todo this is usually 0.
-
-
-def get_torus_top_z(x, y, centers, r, p):
+def get_torus_top_z(x: int, y: int, centers: tuple[int, int, int], r: int, p: int):
     if is_in_circle(x, y, r - p, centers[0], centers[1]):
         return 0
     if not is_in_circle(x, y, r, centers[0], centers[1]):
@@ -119,7 +106,7 @@ def get_torus_top_z(x, y, centers, r, p):
     return int(np.sqrt(p ** 2 - (r - point_r) ** 2) + centers[2])
 
 
-def torus_inner_radius(r, p, z):
+def torus_inner_radius(r: float, p: float, z: int):
     """
     :param r: radius from center of tube to center of torus ring
     :param p: radius of tube
@@ -130,7 +117,7 @@ def torus_inner_radius(r, p, z):
     return r - np.sqrt(p ** 2 - z ** 2)
 
 
-def get_coordinate_list(cylinder_layers, fg_per_layer, r, p):
+def get_coordinate_list(cylinder_layers: int, fg_per_layer: int, r: float, p: float):
     """for anchoring fgs on torus."""
     coordinates = []
     for i in range(cylinder_layers):
@@ -145,17 +132,17 @@ def get_coordinate_list(cylinder_layers, fg_per_layer, r, p):
     return coordinates
 
 
-def concentration_to_amount(molar, box_side_a):
+def concentration_to_amount(molar: float, box_side_a: float):
     volume = np.power(box_side_a, 3)
     return (molar * AVOGADRO * volume) / 1e+27
 
 
-def amount_to_concentration(amount, box_side_a):
+def amount_to_concentration(amount: int, box_side_a: float):
     volume = np.power(box_side_a, 3)
     return amount / (AVOGADRO * volume * 1e-27)
 
 
-def calculate_z_distribution(maps, inner_r):
+def calculate_z_distribution(maps: np.ndarray, inner_r: int):
     """axes: x,y,z,fg_i,t"""
     centers = (int(maps.shape[0] / 2), int(maps.shape[1] / 2))
     maps = np.sum(maps, axis=(3, 4))

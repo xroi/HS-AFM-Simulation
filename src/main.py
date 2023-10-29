@@ -8,11 +8,12 @@ import args as arguments
 import utils
 import output
 import auto_corr
+
 from scipy.ndimage import distance_transform_cdt
 
 
-def main():
-    args = arguments.parse_arguments()
+def main() -> None:
+    args: dict[str, any] = arguments.parse_arguments()
     print(args)
 
     real_time_maps = get_real_time_maps(args)
@@ -33,7 +34,7 @@ def main():
         post_analysis(args, real_time_maps, needle_maps)
 
 
-def post_analysis(args, real_time_maps, needle_maps):
+def post_analysis(args: dict[str, any], real_time_maps: list[np.ndarray], needle_maps: list[np.ndarray]) -> None:
     real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 1)
     taus = auto_corr.calculate_taus(real_time_acorrs)
     original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
@@ -44,8 +45,8 @@ def post_analysis(args, real_time_maps, needle_maps):
                           args["max_y_coord"], center_x, center_y, 10,
                           f"{args['output_path_prefix']}_taus_real_time.png")
     tau_ring_means = utils.get_ring_means_array(taus,
-                                                real_time_maps[0].shape[0] / 2,
-                                                real_time_maps[0].shape[1] / 2)
+                                                int(real_time_maps[0].shape[0] / 2),
+                                                int(real_time_maps[0].shape[1] / 2))
     output.visualize_tau_by_radial_distance(tau_ring_means, f"{args['output_path_prefix']}_tau_radial_real_time.png")
 
     # real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 3)
@@ -54,8 +55,8 @@ def post_analysis(args, real_time_maps, needle_maps):
     #                       args["max_y_coord"], center_x, center_y, 10)
 
     ring_means = utils.get_ring_means_array(np.mean(np.dstack(real_time_maps), axis=2),
-                                            real_time_maps[0].shape[0] / 2,
-                                            real_time_maps[0].shape[1] / 2)
+                                            int(real_time_maps[0].shape[0] / 2),
+                                            int(real_time_maps[0].shape[1] / 2))
     ring_means = (ring_means - center_z)
     output.visualize_height_by_radial_distance(ring_means,
                                                f"{args['output_path_prefix']}_height_radial_real_time.png",
@@ -64,7 +65,7 @@ def post_analysis(args, real_time_maps, needle_maps):
     output.visualize_tcf_samples(real_time_acorrs, taus, 5, 5, f"{args['output_path_prefix']}_tcf_samples.png")
 
 
-def calculate_normal_pdf(min_z, max_z, mu, sigma):
+def calculate_normal_pdf(min_z: int, max_z: int, mu: float, sigma: float) -> dict[int, float]:
     vals = {}
     norm = scipy.stats.norm(mu, sigma)
     for i in range(min_z, max_z):
@@ -72,7 +73,7 @@ def calculate_normal_pdf(min_z, max_z, mu, sigma):
     return vals
 
 
-def get_real_time_maps(args):
+def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
     real_time_maps = []
     needle_threshold = args["needle_custom_threshold"]  # todo not using get_needle_threshold
     original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
@@ -87,8 +88,9 @@ def get_real_time_maps(args):
     with alive_bar(stages_total, force_tty=args["progress_bar"]) as bar:
         for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
             fgs_counts_map, floaters_counts_map, floater_sizes = get_individual_counts_maps(i, args)
-            height_map = height_funcs.z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs,
-                                              floater_sizes, args)
+            height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, needle_threshold,
+                                                           centers, pdfs,
+                                                           floater_sizes, args)
             real_time_maps.append(height_map)
             bar()
             if not args["progress_bar"]:
@@ -96,7 +98,7 @@ def get_real_time_maps(args):
     return real_time_maps
 
 
-def enlarge_floater_size(floater_individual_counts_maps, floater_sizes):
+def enlarge_floater_size(floater_individual_counts_maps: np.ndarray, floater_sizes: list[float]) -> np.ndarray:
     shape = floater_individual_counts_maps.shape
     new_maps = np.zeros(shape=shape)
     mid_x = int(shape[0] / 2)
@@ -129,7 +131,7 @@ def enlarge_floater_size(floater_individual_counts_maps, floater_sizes):
     return new_maps
 
 
-def get_individual_counts_maps(time, args):
+def get_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.ndarray, np.ndarray, list[float]]:
     """
     returns a tuple of two 4d array of size (size_x, size_y, size_z, mol_number), one for floaters and one for fgs.
     """
@@ -161,7 +163,7 @@ def get_individual_counts_maps(time, args):
     return fg_individual_counts_maps, floater_individual_counts_maps, floater_sizes
 
 
-def get_needle_maps(real_time_maps, args):
+def get_needle_maps(real_time_maps: list[np.ndarray], args: dict[str, any]) -> list[np.ndarray]:
     """
     Given real time Maps, calculates height Maps from the AFM needle 'point of view', i.e. according to its speed.
     The real time map resolution affects this, since for each pixel, the time floors to the most recent image.
@@ -194,7 +196,7 @@ def get_needle_maps(real_time_maps, args):
     return needle_maps[:cur_needle_map_index]
 
 
-def get_times(args, size_x):
+def get_times(args: dict[str, any], size_x: int) -> tuple[float, float]:
     if args["needle_time_per_line_ns"] is not None:
         time_per_line = args["needle_time_per_line_ns"]
         time_per_pixel = args["needle_time_per_line_ns"] / size_x
@@ -204,20 +206,11 @@ def get_times(args, size_x):
     return time_per_line, time_per_pixel
 
 
-def get_hdf5_size(filename):
+def get_hdf5_size(filename: str) -> tuple[int, int, int]:
     with h5py.File(filename, "r") as f:
         data = f["fg_xyz_hist"]
         arr = np.array(data[list(data.keys())[0]])
         return arr.shape
-
-
-def get_needle_threshold(args, density_maps):
-    if args["calc_needle_threshold"] is True:
-        threshold = utils.median_threshold(density_maps, args["calc_threshold_r_px"], args["calc_threshold_frac"])
-        print(f"Calculated needle threshold is: {threshold}")
-        return threshold
-    else:
-        return args["needle_custom_threshold"]
 
 
 if __name__ == "__main__":
@@ -252,3 +245,29 @@ if __name__ == "__main__":
     #                                                   "voxel_size_a"]))
     # print(inner.tolist())
     # print(outer.tolist())
+
+
+#####################
+# Currently Unused: #
+#####################
+
+def get_needle_threshold(args: dict[str, any], density_maps: list[np.ndarray]) -> float:
+    if args["calc_needle_threshold"] is True:
+        threshold = median_threshold(density_maps, args["calc_threshold_r_px"], args["calc_threshold_frac"])
+        print(f"Calculated needle threshold is: {threshold}")
+        return threshold
+    else:
+        return args["needle_custom_threshold"]
+
+
+def median_threshold(density_maps: list[np.ndarray], r: int, frac: float):
+    """Calculates a threshold for densities using a fraction of the median in a ball of radius r around the center."""
+    x = int(density_maps[0].shape[0] / 2)
+    y = int(density_maps[0].shape[1] / 2)
+    z = int(density_maps[0].shape[2] / 2)
+    vals = []
+    for density_map in density_maps:
+        arr = utils.get_ball_vals(density_map, x, y, z, r)
+        for val in arr:
+            vals.append(val)
+    return np.median(vals) * frac  # todo this is usually 0.

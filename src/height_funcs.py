@@ -57,12 +57,14 @@ def get_fg_weights_by_vector(counts_map):
     return fg_weights[0]
 
 
-def get_fg_weights_by_distance(counts_map, fgs_pdf):
+def get_fg_weights_by_distance(counts_map: np.ndarray, fgs_pdf: dict[int, float]):
     dists = (np.max(np.argmax(counts_map, axis=2), axis=(0, 1)) - np.min(np.argmin(counts_map, axis=2), axis=(0, 1)))
     return np.vectorize(fgs_pdf.get)(dists)
 
 
-def z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs, floater_sizes, args):
+def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.ndarray, needle_threshold: float,
+                         centers: tuple[int, int, int], pdfs: tuple[dict[int, float], dict[int, float]],
+                         floater_sizes: list[float], args: dict[str, any]) -> np.ndarray:
     height_map = np.ones(shape=fgs_counts_map.shape[:2]) * args["min_z_coord"]
     # Calculate the weights for each fg. this is done once per time step.
     fg_weights = get_fg_weights_by_distance(fgs_counts_map, pdfs[0])
@@ -96,7 +98,7 @@ def z_test2(fgs_counts_map, floaters_counts_map, needle_threshold, centers, pdfs
     return height_map
 
 
-def get_slab_top_z(x, y, centers, args):
+def get_slab_top_z(x: int, y: int, centers: tuple[int, int, int], args: dict[str, any]) -> int:
     if args["torus_slab"]:
         slab_top_z = utils.get_torus_top_z(x,
                                            y,

@@ -4,7 +4,7 @@ import statsmodels.api as statsmodels
 from scipy.optimize import curve_fit
 
 
-def temporal_auto_correlate(maps, window_size):
+def temporal_auto_correlate(maps: list[np.ndarray], window_size: int):
     """
     Calculates the temporal auto correlation of each pixel with itself over different time lags.
     """
@@ -21,12 +21,12 @@ def temporal_auto_correlate(maps, window_size):
     return temporal_auto_correlations
 
 
-def model_func(t, tau):
+def model_func(t: float, tau: float):
     return np.exp(-(1 / tau) * t)
 
 
 # noinspection PyTupleAssignmentBalance
-def calculate_taus(acorrs):
+def calculate_taus(acorrs: np.ndarray):
     """Given a 3d array where z vectors are auto correlations values in lags 0,...,acorrs.shape[2] fits the points to
     an exponential decay function and return an array of size (acorrs.shape[0],acorrs.shape[1]), with the fitted tau
     values."""

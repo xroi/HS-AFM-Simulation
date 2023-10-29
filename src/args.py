@@ -3,7 +3,7 @@ import sys
 import shlex
 
 
-def validate_args(args):
+def validate_args(args) -> None:
     if args["npc_simulation"]:
         raise Exception("Integrated npc simulation not yet implemented.")
     if args["calc_needle_threshold"] is not None:
@@ -16,7 +16,7 @@ def validate_args(args):
             "calc-needle-threshold.")
 
 
-def parse_arguments():
+def parse_arguments() -> dict[str, any]:
     parser = argparse.ArgumentParser(
         prog="HS-AFM-Simulation",
         description="A model of high speed atomic force microscopy, based on density Maps from imp's nuclear pore "

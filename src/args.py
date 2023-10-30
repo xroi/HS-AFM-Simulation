@@ -229,6 +229,9 @@ def parse_arguments() -> dict[str, any]:
                         action=argparse.BooleanOptionalAction,
                         help="If true, spreads floater density based on the radius in the type name (in angstrom)",
                         required=True)
+    parser.add_argument('--n-cores',
+                        type=int,
+                        help="To be used for parallel operation. If not specified, uses the maximum number of cores.")
 
     if sys.argv[1].startswith('@'):
         args = vars(parser.parse_args(shlex.split(open(sys.argv[1][1:]).read())))

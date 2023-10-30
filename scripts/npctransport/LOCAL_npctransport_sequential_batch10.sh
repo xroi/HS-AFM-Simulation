@@ -26,7 +26,7 @@ echo IDs: ${IDs[@]}
 echo "Running jobs"
 declare -a PIDs=()
 for ID in ${IDs[@]}; do
-  /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/LOCAL_npctransport_sequential.sh 1 $STEP $STEP $OUTPUT_PATH/${ID} $CONFIG_PATH &
+  /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/npctransport/LOCAL_npctransport_sequential.sh 1 $STEP $STEP $OUTPUT_PATH/${ID} $CONFIG_PATH &
   PID=$!
   PIDs+=($PID)
   echo $PID submitted, workid $ID

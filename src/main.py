@@ -8,6 +8,9 @@ import args as arguments
 import utils
 import output
 import auto_corr
+from multiprocessing import Pool
+from functools import partial
+import tqdm
 
 from scipy.ndimage import distance_transform_cdt
 
@@ -87,7 +90,6 @@ def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
     :param args: User arguments.
     :return: List of all height maps, for each point of time.
     """
-    real_time_maps = []
     tip_threshold = args["tip_custom_threshold"]  # todo not using get_needle_threshold
     original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
     centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
@@ -98,16 +100,38 @@ def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
     pdfs = (fg_pdfs, floater_pdfs)
     stages_total = int(args["simulation_end_time_ns"] / args["interval_ns"] - args["simulation_start_time_ns"] /
                        args["interval_ns"])
-    with alive_bar(stages_total, force_tty=args["progress_bar"]) as bar:
-        for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
-            fgs_counts_map, floaters_counts_map, floater_sizes = get_individual_counts_maps(i, args)
-            height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, tip_threshold,
-                                                           centers, pdfs,
-                                                           floater_sizes, args)
-            real_time_maps.append(height_map)
-            bar()
-            if not args["progress_bar"]:
-                print(f"Finished {i}ns.", flush=True)
+
+    get_single = partial(get_single_real_time_map, args=args, centers=centers, pdfs=pdfs,
+                         tip_threshold=tip_threshold)
+    real_time_maps = get_real_time_maps_helper_parallel(args, get_single, stages_total)
+    return real_time_maps
+
+
+def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int, int, int],
+                             pdfs: tuple[dict[int, float], dict[int, float]], tip_threshold: float) -> np.array:
+    """loads and calculates the height map for a single file/point of time. """
+    # Load the file
+    fgs_counts_map, floaters_counts_map, floater_sizes = get_individual_counts_maps(time, args)
+    # Perform the height calculation
+    height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, tip_threshold,
+                                                   centers, pdfs, floater_sizes, args)
+    return height_map
+
+
+def get_real_time_maps_helper_parallel(args, get_single, stages_total):
+    """Parallel operation of get_real_time_maps"""
+    p = Pool(args["n_cores"]) if args["n_cores"] else Pool()
+    if args["progress_bar"]:
+        real_time_maps = list(tqdm.tqdm(p.imap(
+            get_single,
+            range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"])),
+            total=stages_total, colour='WHITE'))
+    else:
+        real_time_maps = p.imap(
+            get_single,
+            range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]))
+    p.close()
+    p.join()
     return real_time_maps
 
 
@@ -317,3 +341,13 @@ def median_threshold(density_maps: list[np.ndarray], r: int, frac: float):
         for val in arr:
             vals.append(val)
     return np.median(vals) * frac  # todo this is usually 0.
+
+
+def get_real_time_maps_helper_sequential(args, get_single):
+    """Sequential operation of get_real_time_maps"""
+    real_time_maps = []
+    for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
+        real_time_maps.append(get_single(i))
+        if not args["progress_bar"]:
+            print(f"Finished {i}ns.", flush=True)
+    return real_time_maps

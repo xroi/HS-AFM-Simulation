@@ -12,6 +12,6 @@ with open(outfile, "rb") as f:
 assignment = output.assignment
 assignment.is_multiple_hdf5s = True
 assignment.simulation_time_ns = 1000
-with open(newoutfile) as nf:
+with open(newoutfile, "wb") as nf:
     nf.write(output.SerializeToString())
     print(output.assignment)

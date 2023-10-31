@@ -7,4 +7,4 @@ fi
 
 #tree -fQFi --sort=size ${1}/ | grep \.pb\"$ | tail +2 | cut -d '.' -f 1 | sed -n -e 's/^.*\///p'
 
-ls -av ${1}/*.pb.final.rmf | tail -1 | cut -d '.' -f 1
+ls -av ${1}/*.pb.final.rmf | tail -1 | xargs -n 1 basename |cut -d '.' -f 1

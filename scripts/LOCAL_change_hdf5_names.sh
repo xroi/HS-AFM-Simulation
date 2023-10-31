@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $# != 3 ]; then
+if [ $# != 4 ]; then
   echo "Syntax: $0 <dir_path> <time> <step> <output_statistics_interval>"
   exit 1
 fi

@@ -1,8 +1,6 @@
 import h5py
 import numpy as np
-from alive_progress import alive_bar
 import scipy.stats
-from itertools import product
 import height_funcs
 import args as arguments
 import utils
@@ -12,7 +10,7 @@ from multiprocessing import Pool
 from functools import partial
 import tqdm
 
-from scipy.ndimage import distance_transform_cdt
+from src.raster import get_rasterized_maps
 
 
 def main() -> None:
@@ -196,12 +194,26 @@ def get_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.ndar
 
     with h5py.File(f"{args['input_path']}/{time}.pb.hdf5", "r") as f:
         fg_data = f["fg_xyz_hist"]
-        fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(fg_data.keys())))
+        if args["separate_n_c"]:
+            fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, int(len(fg_data.keys()) / 2)))
+        else:
+            fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(fg_data.keys())))
         for i, key in enumerate(fg_data.keys()):
-            # todo merge if seperated into N and C
-            fg_individual_counts_maps[:, :, :, i] = np.array(fg_data[key][args["min_x_coord"]:args["max_x_coord"],
-                                                             args["min_y_coord"]:args["max_y_coord"],
-                                                             args["min_z_coord"]:args["max_z_coord"]])
+            if args["separate_n_c"]:
+                if i % 2 == 0:
+                    fg_individual_counts_maps[:, :, :, int(i / 2)] += np.array(
+                        fg_data[key][args["min_x_coord"]:args["max_x_coord"],
+                        args["min_y_coord"]:args["max_y_coord"],
+                        args["min_z_coord"]:args["max_z_coord"]])
+                else:
+                    fg_individual_counts_maps[:, :, :, int((i - 1) / 2)] += np.array(
+                        fg_data[key][args["min_x_coord"]:args["max_x_coord"],
+                        args["min_y_coord"]:args["max_y_coord"],
+                        args["min_z_coord"]:args["max_z_coord"]])
+            else:
+                fg_individual_counts_maps[:, :, :, i] = np.array(fg_data[key][args["min_x_coord"]:args["max_x_coord"],
+                                                                 args["min_y_coord"]:args["max_y_coord"],
+                                                                 args["min_z_coord"]:args["max_z_coord"]])
         floater_data = f["floater_xyz_hist"]
         floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
         floater_sizes = []
@@ -217,63 +229,6 @@ def get_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.ndar
             if args["enlarge_floaters"]:
                 floater_individual_counts_maps = enlarge_floater_size(floater_individual_counts_maps, floater_sizes)
     return fg_individual_counts_maps, floater_individual_counts_maps, floater_sizes
-
-
-def get_rasterized_maps(real_time_maps: list[np.ndarray], args: dict[str, any]) -> list[np.ndarray]:
-    """
-    Given real time Maps, calculates height Maps from the AFM tip 'point of view', i.e. according to its speed.
-    The real time map resolution affects this, since for each pixel, the time floors to the most recent image.
-    :param real_time_maps:
-    :param args:
-    :return:
-    """
-    if len(real_time_maps) <= 1:
-        return []
-    size_x = real_time_maps[0].shape[0]
-    size_y = real_time_maps[0].shape[1]
-    time_per_line, time_per_pixel = get_times(args, size_x)
-    rasterized_maps = []
-    total_time = float(args["interval_ns"])
-    cur_rasterized_map_index = 0
-    if int(total_time / args["interval_ns"]) >= len(real_time_maps):
-        return rasterized_maps
-    while total_time < args["simulation_end_time_ns"]:
-        rasterized_maps.append(np.zeros(shape=real_time_maps[0].shape))
-        for y in range(size_y):
-            for x in range(size_x):
-                rasterized_maps[cur_rasterized_map_index][x, y] = real_time_maps[int(total_time / args["interval_ns"])][
-                    x, y]
-                # Advance the time variable by the time it takes to capture a pixel.
-                total_time += time_per_pixel
-                if int(total_time / args["interval_ns"]) >= len(real_time_maps):
-                    break
-            # Advance the time variable by the time it takes to move across a line.
-            total_time += time_per_line
-            if int(total_time / args["interval_ns"]) >= len(real_time_maps):
-                break
-        # Advance the time variable by the time it takes to move back to the start.
-        total_time += args["time_between_scans_ns"]
-        if int(total_time / args["interval_ns"]) >= len(real_time_maps):
-            break
-        cur_rasterized_map_index += 1
-    return rasterized_maps[:cur_rasterized_map_index]
-
-
-def get_times(args: dict[str, any], size_x: int) -> tuple[float, float]:
-    """
-    time_per_pixel_ns, and time_per_line_ns are mutually exclusive arguments - here we calculate one from the
-    other.
-    :param args: User arguments.
-    :param size_x: Size of the AFM image on the X axis.
-    :return: tuple[time it takes the AFM to move across a line, time it takes the AFM to move across a pixel]
-    """
-    if args["time_per_line_ns"] is not None:
-        time_per_line = args["time_per_line_ns"]
-        time_per_pixel = args["time_per_line_ns"] / size_x
-    else:  # args["time_per_pixel_ns"] is not None
-        time_per_line = args["time_per_pixel_ns"] * size_x
-        time_per_pixel = args["time_per_pixel_ns"]
-    return time_per_line, time_per_pixel
 
 
 def get_hdf5_size(filename: str) -> tuple[int, int, int]:
@@ -292,9 +247,14 @@ if __name__ == "__main__":
     # pickle_dict = output.load_pickle("Outputs/12-10-2023-NTR-BATCH/0.pickle")
     # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
 
-    # args = arguments.parse_arguments()
-    # pickle_dict = output.load_pickle("Outputs/12-10-2023-NTR-BATCH/0.pickle")
-    # needle_maps = get_needle_maps(pickle_dict["real_time_maps"], args)
+    args = arguments.parse_arguments()
+    pickle_dict = output.load_pickle("temp.pickle")
+    rasterized_maps = pickle_dict["rasterized_maps"]
+    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+    center_z = int(original_shape[0] / 2)
+    output.output_gif(args, rasterized_maps,
+                      f"{args['output_path_prefix']}_rasterized.gif", center_z, args["min_z_coord"],
+                      args["max_z_coord"])
 
     # print(utils.concentration_to_amount(200e-6, 1500.0))
     # print(utils.amount_to_concentration(100.0, 1500.0))

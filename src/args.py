@@ -68,7 +68,11 @@ def parse_arguments() -> dict[str, any]:
                         required=True)
     parser.add_argument('--torus-slab',
                         action=argparse.BooleanOptionalAction,
-                        help="Specified if the slab is a torus. should be the same as in the original simulation.",
+                        help="Specifies if the slab is a torus. should be the same as in the original simulation.",
+                        required=True)
+    parser.add_argument('--separate-n-c',
+                        action=argparse.BooleanOptionalAction,
+                        help="Specifies if fg chains are sperated into N anc C parts.",
                         required=True)
     # ============== #
     # AFM PARAMETERS #
@@ -103,6 +107,10 @@ def parse_arguments() -> dict[str, any]:
                         help="Specifies the last pixel on the Z axis on which the simulation is ran (not inclusive). "
                              "Count starting from 0.",
                         required=True)
+
+    parser.add_argument('--vertical-scanning',
+                        action=argparse.BooleanOptionalAction,
+                        help="If true, scans the lines vertically.")
 
     # Z height functions:
     parser.add_argument("--z-func",

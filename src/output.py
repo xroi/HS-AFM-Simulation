@@ -16,22 +16,21 @@ def output_gif(args, maps, filename, z_center, min_z, max_z):
         scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
         cm = plt.get_cmap(args["output_gif_color_map"])
         data = cm(scaled_map)
-        for i in range(3):
-            data[:, :, i] = np.flipud(data[:, :, i].T)
         im = Image.fromarray((data[:, :, :3] * 255).astype(np.uint8), 'RGB')
-        im = im.resize((args["output_resolution_x"], args["output_resolution_y"]), resample=Image.BOX)
+        im = im.resize((args["output_resolution_y"], args["output_resolution_x"]), resample=Image.BOX).rotate(angle=90,
+                                                                                                              expand=1)
         images.append(im)
     images[0].save(filename, append_images=images[1:], save_all=True, duration=150, loop=0)
 
 
 def save_pickle(real_time_maps, needle_maps, args, file_name):
-    save_dict = {'real_time_maps': real_time_maps, 'needle_maps': needle_maps, 'args': args}
+    save_dict = {'real_time_maps': real_time_maps, 'rasterized_maps': needle_maps, 'args': args}
     with open(file_name, 'wb') as f:
         pickle.dump(save_dict, f)
 
 
 def load_pickle(file_name):
-    """returns a dictionary with the following keys: real_time_maps, needle_maps, args"""
+    """returns a dictionary with the following keys: real_time_maps, rasterized_maps, args"""
     with open(file_name, 'rb') as f:
         return pickle.load(f)
 

@@ -9,6 +9,6 @@ if [ $# != 1 ]; then
   exit 1
 fi
 
-$IMP python edit_old_pb.py ${1} TEMP_replace_old_pb.pb
+$IMP python3 /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/npctransport/edit_old_pb.py ${1} TEMP_replace_old_pb.pb
 cp TEMP_replace_old_pb.pb ${1}
 rm TEMP_replace_old_pb.pb

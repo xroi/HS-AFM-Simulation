@@ -13,5 +13,5 @@ total=$((step/interval))
 for (( i=1 ; i<=${total} ; i++ ));
 do
   cur=$(((time - step) + (i * interval)))
-   mv ${1}/${time}.pb.${i}.hdf5 cur.hdf5
+  mv ${1}/${time}.pb.${i}.hdf5 ${cur}.hdf5
 done

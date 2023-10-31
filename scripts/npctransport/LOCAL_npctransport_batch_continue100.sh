@@ -27,7 +27,7 @@ echo "Running jobs"
 declare -a PIDs=()
 for ID in ${IDs[@]}; do
   $START = $(/cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/LOCAL_get_biggest_pb_n.sh $OUTPUT_PATH/${ID})
-  /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/npctransport/LOCAL_npctransport_sequential.sh 1 $START $STEP $OUTPUT_PATH/${ID} $CONFIG_PATH &
+  /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/npctransport/LOCAL_npctransport_sequential.sh 0 $START $STEP $OUTPUT_PATH/${ID} $CONFIG_PATH &
   PID=$!
   PIDs+=($PID)
   echo $PID submitted, workid $ID

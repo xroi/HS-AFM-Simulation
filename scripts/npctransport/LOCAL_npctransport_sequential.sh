@@ -24,6 +24,7 @@ if (`echo "$1==1" | bc`) then
     echo Initilising new simulation...
     set i=$3
     $IMP $IMP_FOLDER/bin/fg_simulation --configuration $CONFIG_PATH --output $OUTPUT_PATH$i.pb --short_init_factor 0.5 --short_sim_factor 1.00 --conformations $OUTPUT_PATH$i.movie.rmf --final_conformations $OUTPUT_PATH$i.pb.final.rmf --random_seed $seed
+    /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/npctransport/LOCAL_change_hdf5_names.sh $OUTPUT_PATH $i $3 $6
 endif
 
 #ignore this idk scripting format

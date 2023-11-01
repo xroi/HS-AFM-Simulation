@@ -1,4 +1,6 @@
 #!/bin/bash
+#SBATCH --mem=2g
+#SBATCH --time=2-0
 
 if [ $# != 2 ]; then
   echo "Syntax: $0 <dir_path> <amount>"

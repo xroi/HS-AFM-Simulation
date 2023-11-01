@@ -9,5 +9,5 @@ fi
 
 for (( i=1 ; i<=${2} ; i++ ));
 do
-   rm -rf ${1}/4{i}
+   rm -rf ${1}/${i}
 done

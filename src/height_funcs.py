@@ -56,15 +56,13 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
             for fg_i in np.nonzero(fgs_counts_map[x, y, z, :])[0]:
                 # TODO: for here and for the floaters, getting the circle max doesn't work since we are only looking
                 #  at non zero fg_i. switching to all causes massive slowdown. A solution is to pre enlarge.
-                counts_sum += utils.get_circle_max(fgs_counts_map[:, :, z, fg_i], x, y, args["tip_radius_px"]) * \
-                              fg_weights[fg_i]
+                counts_sum += fgs_counts_map[x, y, z, fg_i] * fg_weights[fg_i]
             for floater_i in np.nonzero(floaters_counts_map[x, y, z, :])[0]:
                 # floater_weight = pdfs[1][z + args["min_z_coord"]] * (floater_sizes[floater_i] ** 3) * args[
                 #     "floater_general_factor"]
                 floater_weight = pdfs[1][z + args["min_z_coord"]] * (floater_sizes[floater_i] ** 3) * args[
                     "floater_general_factor"]
-                counts_sum += utils.get_circle_max(floaters_counts_map[:, :, z, floater_i], x, y,
-                                                   args["tip_radius_px"]) * floater_weight
+                counts_sum += floaters_counts_map[x, y, z, floater_i] * floater_weight
             if (counts_sum > tip_threshold) or z < slab_top_z:
                 height_map[x, y] = z + args["min_z_coord"]
                 break

@@ -21,7 +21,7 @@ def main() -> None:
     if args["output_pickle"]:
         output.save_pickle(real_time_maps, rasterized_maps, args, f"{args['output_path_prefix']}.pickle")
     if args["output_gif"]:
-        original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+        original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
         center_z = int(original_shape[0] / 2)
         output.output_gif(args, np.array(real_time_maps),
                           f"{args['output_path_prefix']}_real_time.gif", center_z, args["min_z_coord"],
@@ -37,7 +37,7 @@ def main() -> None:
 def post_analysis(args: dict[str, any], real_time_maps: list[np.ndarray], needle_maps: list[np.ndarray]) -> None:
     real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 1)
     taus = auto_corr.calculate_taus(real_time_acorrs)
-    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
     center_x = int(original_shape[0] / 2)
     center_y = int(original_shape[1] / 2)
     center_z = int(original_shape[2] / 2)
@@ -88,7 +88,7 @@ def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
     :return: List of all height maps, for each point of time.
     """
     tip_threshold = args["tip_custom_threshold"]  # todo not using get_needle_threshold
-    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
     centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
     fg_pdfs = calculate_normal_pdf(0, args["max_z_coord"] - args["min_z_coord"] + 1, 0,
                                    args["fgs_sigma_a"] / args["voxel_size_a"])

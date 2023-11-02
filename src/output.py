@@ -172,4 +172,4 @@ def visualize_energy_plot(y, file_path):
                       yaxis_title="Energy(kcal/mol)",
                       font=dict(size=20),
                       template="plotly_white")
-    fig.write_image("energy.png")
+    fig.write_image(file_path)

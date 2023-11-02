@@ -21,10 +21,9 @@ def parse_arguments() -> dict[str, any]:
         prog="HS-AFM-Simulation",
         description="A model of high speed atomic force microscopy, based on density Maps from imp's nuclear pore "
                     "complex transport module.")
-
-    # ========================= #
-    # NPC SIMULATION PARAMETERS #
-    # ========================= #
+    # ================ #
+    # INPUT PARAMETERS #
+    # ================ #
     parser.add_argument('--npc-simulation',
                         action=argparse.BooleanOptionalAction,
                         help="In the case of --npc-simulation flag, the npc simulations run 'live'. In the case of "
@@ -34,7 +33,16 @@ def parse_arguments() -> dict[str, any]:
     parser.add_argument("--input-path",
                         type=str,
                         help="Path to the folder containing hdf5 density map files, to be used in the case of "
-                             "--no-npc-simulation flag. Files should be named <delta_time_in_ns>.pb.hdf5")
+                             "--no-npc-simulation flag.",
+                        required=True)
+    parser.add_argument("--input-suffix",
+                        type=str,
+                        help="Files should be in input-path and named <delta_time_in_ns>.<input-suffix>",
+                        required=True)
+
+    # ========================= #
+    # NPC SIMULATION PARAMETERS #
+    # ========================= #
     parser.add_argument("--simulation-start-time-ns",
                         type=int,
                         help="Start time of the AFM simulation in nanoseconds. (NPC will be simulated since 0)",

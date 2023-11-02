@@ -93,6 +93,10 @@ def get_circle_mean(arr: np.ndarray, x: int, y: int, r: int):
     return np.mean(get_circle_vals(arr, x, y, r))
 
 
+def get_circle_max(arr: np.ndarray, x: int, y: int, r: int):
+    return np.max(get_circle_vals(arr, x, y, r))
+
+
 def is_in_circle(x: int, y: int, r: int, center_x: int, center_y: int):
     return np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2) < r
 

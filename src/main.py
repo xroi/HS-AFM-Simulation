@@ -5,12 +5,11 @@ import height_funcs
 import args as arguments
 import utils
 import output
+import raster
 import auto_corr
 from multiprocessing import Pool
 from functools import partial
 import tqdm
-
-from src.raster import get_rasterized_maps
 
 
 def main() -> None:

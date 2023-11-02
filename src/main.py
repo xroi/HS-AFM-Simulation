@@ -17,7 +17,7 @@ def main() -> None:
     print(args)
 
     real_time_maps = get_real_time_maps(args)
-    rasterized_maps = get_rasterized_maps(real_time_maps, args)
+    rasterized_maps = raster.get_rasterized_maps(real_time_maps, args)
     if args["output_pickle"]:
         output.save_pickle(real_time_maps, rasterized_maps, args, f"{args['output_path_prefix']}.pickle")
     if args["output_gif"]:

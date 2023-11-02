@@ -124,9 +124,9 @@ def get_real_time_maps_helper_parallel(args, get_single, stages_total):
             range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"])),
             total=stages_total, colour='WHITE'))
     else:
-        real_time_maps = p.imap(
+        real_time_maps = list(p.imap(
             get_single,
-            range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]))
+            range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"])))
     p.close()
     p.join()
     return real_time_maps

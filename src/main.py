@@ -114,7 +114,8 @@ def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int
         floaters_counts_map = enlarge_floater_size(floaters_counts_map, floater_sizes)
     # enlarge the maps sideways to simulate needle size:
     fgs_counts_map = enlarge_sideways(fgs_counts_map, args["tip_radius_px"])
-    floaters_counts_map = enlarge_sideways(floaters_counts_map, args["tip_radius_px"])
+    if len(floater_sizes) != 0:
+        floaters_counts_map = enlarge_sideways(floaters_counts_map, args["tip_radius_px"])
     # Perform the height calculation
     height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, tip_threshold,
                                                    centers, pdfs, floater_sizes, args)

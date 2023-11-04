@@ -118,6 +118,8 @@ def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int
     # Perform the height calculation
     height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, tip_threshold,
                                                    centers, pdfs, floater_sizes, args)
+    if not args["progress_bar"]:
+        print(time, flush=True)
 
     return height_map
 

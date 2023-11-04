@@ -58,8 +58,8 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
             for floater_i in np.nonzero(floaters_counts_map[x, y, z, :])[0]:
                 # floater_weight = pdfs[1][z + args["min_z_coord"]] * (floater_sizes[floater_i] ** 3) * args[
                 #     "floater_general_factor"]
-                floater_weight = pdfs[1][z + args["min_z_coord"]] * (floater_sizes[floater_i] ** 3) * args[
-                    "floater_general_factor"]
+                floater_weight = pdfs[1][z + args["min_z_coord"]] * args[
+                    "floater_general_factor"]  # todo no size weighing
                 counts_sum += floaters_counts_map[x, y, z, floater_i] * floater_weight
             if (counts_sum > tip_threshold) or z < slab_top_z:
                 height_map[x, y] = z + args["min_z_coord"]

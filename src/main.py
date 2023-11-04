@@ -20,12 +20,13 @@ def main() -> None:
     rasterized_maps = raster.get_rasterized_maps(real_time_maps, args)
     if args["output_pickle"]:
         output.save_pickle(real_time_maps, rasterized_maps, args, f"{args['output_path_prefix']}.pickle")
-    if args["output_gif"]:
+    if args["output_real_time_gif"]:
         original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
         center_z = int(original_shape[0] / 2)
         output.output_gif(args, np.array(real_time_maps),
                           f"{args['output_path_prefix']}_real_time.gif", center_z, args["min_z_coord"],
                           args["max_z_coord"])
+    if args["output_raster_gif"]:
         if len(rasterized_maps) > 0:
             output.output_gif(args, rasterized_maps,
                               f"{args['output_path_prefix']}_rasterized.gif", center_z, args["min_z_coord"],
@@ -108,7 +109,7 @@ def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int
                              pdfs: tuple[dict[int, float], dict[int, float]], tip_threshold: float) -> np.array:
     """loads and calculates the height map for a single file/point of time. """
     # Load the file
-    fgs_counts_map, floaters_counts_map, floater_sizes = get_individual_counts_maps(time, args)
+    fgs_counts_map, floaters_counts_map, floater_sizes = load_individual_counts_maps(time, args)
     # Enlarge the floaters data to better represent their actual size.
     if args["enlarge_floaters"]:
         floaters_counts_map = enlarge_floater_size(floaters_counts_map, floater_sizes)
@@ -190,7 +191,7 @@ def enlarge_sideways(maps, r):
     mid_x = int(shape[0] / 2)
     mid_y = int(shape[1] / 2)
     mid_z = int(shape[2] / 2)
-    mask = utils.get_circle_mask_3d(maps[:, :, :, 0], mid_z, mid_y, mid_z, r)
+    mask = utils.get_circle_mask_3d(maps[:, :, :, 0], mid_x, mid_y, mid_z, r)
     for x, y, z, i in zip(*np.nonzero(maps)):
         shift_x = int(x - mid_x)
         shift_y = int(y - mid_y)
@@ -212,7 +213,7 @@ def enlarge_sideways(maps, r):
     return new_maps
 
 
-def get_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.ndarray, np.ndarray, list[float]]:
+def load_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.ndarray, np.ndarray, list[float]]:
     """
     Loads hdf5 file and returns the seperated count maps of FGs, and floaters for that file.
     :param time: the time from which to load, i.e. file would be named "<time>.hdf5"
@@ -282,12 +283,13 @@ if __name__ == "__main__":
     # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
 
     # args = arguments.parse_arguments()
-    # pickle_dict = output.load_pickle("temp.pickle")
-    # rasterized_maps = pickle_dict["rasterized_maps"]
-    # original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}.pb.hdf5")
+    # pickle_dict = output.load_pickle("10mM.pickle")
+    # args = pickle_dict["args"]
+    # rasterized_maps = pickle_dict["real_time_maps"][:100]
+    # original_shape = (80, 80, 80)
     # center_z = int(original_shape[0] / 2)
     # output.output_gif(args, rasterized_maps,
-    #                   f"{args['output_path_prefix']}_rasterized.gif", center_z, args["min_z_coord"],
+    #                   f"{args['output_path_prefix']}_real_time_maps.gif", center_z, args["min_z_coord"],
     #                   args["max_z_coord"])
 
     # print(utils.concentration_to_amount(200e-6, 1500.0))

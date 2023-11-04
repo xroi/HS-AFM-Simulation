@@ -196,9 +196,13 @@ def parse_arguments() -> dict[str, any]:
     # ================= #
     # OUTPUT PARAMETERS #
     # ================= #
-    parser.add_argument('--output-gif',
+    parser.add_argument('--output-real-time-gif',
                         action=argparse.BooleanOptionalAction,
-                        help="Outputs a gif if '--output-gif', doesn't if --no-output-gif",
+                        help="Outputs a gif if '--output-real-time-gif', doesn't if --no-output-real-time-gif",
+                        required=True)
+    parser.add_argument('--output-raster-gif',
+                        action=argparse.BooleanOptionalAction,
+                        help="Outputs a gif if '--output-raster-gif', doesn't if --no-output-raster-gif",
                         required=True)
     parser.add_argument('--output-pickle',
                         action=argparse.BooleanOptionalAction,

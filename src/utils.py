@@ -30,6 +30,12 @@ def get_top_of_ball_mask(arr: np.ndarray, x: int, y: int, z: int, r: int):
     return mask
 
 
+def get_circle_mask_3d(arr: np.ndarray, x: int, y: int, z: int, r):
+    xx, yy, zz = np.mgrid[:arr.shape[0], :arr.shape[1], :arr.shape[2]]
+    dist_from_center = np.sqrt((xx - x) ** 2 + (yy - y) ** 2)
+    return np.logical_and(dist_from_center <= r, zz == z)
+
+
 def get_circle_vals(arr: np.ndarray, x: int, y: int, r: int):
     """return a mask for a circle of radius r around x,y in 2d array ayy"""
     x_min = max(0, x - r)

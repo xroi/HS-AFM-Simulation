@@ -109,9 +109,16 @@ def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int
     """loads and calculates the height map for a single file/point of time. """
     # Load the file
     fgs_counts_map, floaters_counts_map, floater_sizes = get_individual_counts_maps(time, args)
+    # Enlarge the floaters data to better represent their actual size.
+    if args["enlarge_floaters"]:
+        floaters_counts_map = enlarge_floater_size(floaters_counts_map, floater_sizes)
+    # enlarge the maps sideways to simulate needle size:
+    fgs_counts_map = enlarge_sideways(fgs_counts_map, args["tip_radius_px"])
+    floaters_counts_map = enlarge_sideways(floaters_counts_map, args["tip_radius_px"])
     # Perform the height calculation
     height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, tip_threshold,
                                                    centers, pdfs, floater_sizes, args)
+
     return height_map
 
 
@@ -154,7 +161,6 @@ def enlarge_floater_size(floater_individual_counts_maps: np.ndarray, floater_siz
     # For each non zero coordinate, move the respective mask into position, and set the values in the area of the
     # mask to be the same as the coordinate. todo : set the coordinate to 0
     for (x, y, z, i) in zip(*np.nonzero(floater_individual_counts_maps)):
-        r = floater_sizes[i]
         shift_x = int(x - mid_x)
         shift_y = int(y - mid_y)
         shift_z = int(z - mid_z)
@@ -172,6 +178,34 @@ def enlarge_floater_size(floater_individual_counts_maps: np.ndarray, floater_siz
         else:
             mask[:, :, shift_z:] = 0
         new_maps[:, :, :, i][mask] += floater_individual_counts_maps[x, y, z, i]
+    return new_maps
+
+
+def enlarge_sideways(maps, r):
+    shape = maps.shape
+    new_maps = np.zeros(shape=shape)
+    mid_x = int(shape[0] / 2)
+    mid_y = int(shape[1] / 2)
+    mid_z = int(shape[2] / 2)
+    mask = utils.get_circle_mask_3d(maps[:, :, :, 0], mid_z, mid_y, mid_z, r)
+    for x, y, z, i in zip(*np.nonzero(maps)):
+        shift_x = int(x - mid_x)
+        shift_y = int(y - mid_y)
+        shift_z = int(z - mid_z)
+        new_mask = np.roll(mask, (shift_x, shift_y, shift_z), axis=(0, 1, 2))
+        if shift_x > 0:
+            new_mask[:shift_x, :, :] = 0
+        else:
+            new_mask[shift_x:, :, :] = 0
+        if shift_y > 0:
+            new_mask[:, :shift_y, :] = 0
+        else:
+            new_mask[:, shift_y:, :] = 0
+        if shift_z > 0:
+            new_mask[:, :, :shift_z] = 0
+        else:
+            new_mask[:, :, shift_z:] = 0
+        new_maps[:, :, :, i][new_mask] += maps[x, y, z, i]
     return new_maps
 
 
@@ -225,8 +259,6 @@ def get_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.ndar
                 # Get the size of the floater according to its IMP type name.
                 size = int(float(''.join(map(str, list(filter(str.isdigit, key))))) / args["voxel_size_a"])
                 floater_sizes.append(size)
-            if args["enlarge_floaters"]:
-                floater_individual_counts_maps = enlarge_floater_size(floater_individual_counts_maps, floater_sizes)
     return fg_individual_counts_maps, floater_individual_counts_maps, floater_sizes
 
 

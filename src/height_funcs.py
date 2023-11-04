@@ -54,8 +54,6 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
         is_in_center = utils.is_in_circle(x, y, inner_r, center_x_partial, center_y_partial)
         for z in range(fgs_counts_map.shape[2] - 1, -1, -1):
             for fg_i in np.nonzero(fgs_counts_map[x, y, z, :])[0]:
-                # TODO: for here and for the floaters, getting the circle max doesn't work since we are only looking
-                #  at non zero fg_i. switching to all causes massive slowdown. A solution is to pre enlarge.
                 counts_sum += fgs_counts_map[x, y, z, fg_i] * fg_weights[fg_i]
             for floater_i in np.nonzero(floaters_counts_map[x, y, z, :])[0]:
                 # floater_weight = pdfs[1][z + args["min_z_coord"]] * (floater_sizes[floater_i] ** 3) * args[

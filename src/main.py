@@ -25,13 +25,13 @@ def main() -> None:
     if args["output_real_time_gif"]:
         output.output_gif(args, np.array(real_time_maps),
                           f"{args['output_path_prefix']}_real_time.gif", center_z,
-                          args["min_z_coord"] + args["tip_bottom_z_dist"],
+                          center_z,
                           args["max_z_coord"])
     if args["output_raster_gif"]:
         if len(rasterized_maps) > 0:
             output.output_gif(args, rasterized_maps,
                               f"{args['output_path_prefix']}_rasterized.gif", center_z,
-                              args["min_z_coord"] + args["tip_bottom_z_dist"],
+                              center_z,
                               args["max_z_coord"])
     if args["output_post"]:
         post_analysis(args, real_time_maps, rasterized_maps, original_shape=get_hdf5_size(

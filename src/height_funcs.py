@@ -56,7 +56,7 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
                 floater_weight = pdfs[1][z + args["min_z_coord"]] * args[
                     "floater_general_factor"]  # todo no size weighing
                 counts_sum += floaters_counts_map[x, y, z, floater_i] * floater_weight
-            if (counts_sum > tip_threshold) or z < slab_top_z:
+            if (counts_sum > tip_threshold) or (z < slab_top_z):
                 height_map[x, y] = z + args["min_z_coord"]
                 break
     return height_map
@@ -78,12 +78,12 @@ def get_slab_top_z(x: int, y: int, centers: tuple[int, int, int], args: dict[str
                                            y,
                                            centers,
                                            args["tunnel_radius_a"] / args["voxel_size_a"],
-                                           (args["slab_thickness_a"] / args["voxel_size_a"]) / 2)
+                                           (args["slab_thickness_a"] / args["voxel_size_a"]) / 2, inside=centers[2])
     else:
-        slab_top_z = args["tip_bottom_z_dist"] if utils.is_in_circle(x, y,
-                                                                     args["tunnel_radius_a"] / args["voxel_size_a"],
-                                                                     centers[0],
-                                                                     centers[1]) else centers[2] + (
+        slab_top_z = centers[2] if utils.is_in_circle(x, y,
+                                                      args["tunnel_radius_a"] / args["voxel_size_a"],
+                                                      centers[0],
+                                                      centers[1]) else centers[2] + (
                 (args["slab_thickness_a"] / 2) / args["voxel_size_a"])
     return slab_top_z
 

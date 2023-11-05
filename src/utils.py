@@ -107,9 +107,9 @@ def is_in_circle(x: int, y: int, r: int, center_x: int, center_y: int):
     return np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2) < r
 
 
-def get_torus_top_z(x: int, y: int, centers: tuple[int, int, int], r: int, p: int):
+def get_torus_top_z(x: int, y: int, centers: tuple[int, int, int], r: int, p: int, inside: int = 0):
     if is_in_circle(x, y, r - p, centers[0], centers[1]):
-        return 0
+        return inside
     if not is_in_circle(x, y, r, centers[0], centers[1]):
         return centers[2] + p
     point_r = np.sqrt((x - centers[0]) ** 2 + (y - centers[1]) ** 2)

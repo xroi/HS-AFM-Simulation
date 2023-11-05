@@ -20,9 +20,9 @@ def main() -> None:
     rasterized_maps = raster.get_rasterized_maps(real_time_maps, args)
     if args["output_pickle"]:
         output.save_pickle(real_time_maps, rasterized_maps, args, f"{args['output_path_prefix']}.pickle")
+    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
+    center_z = int(original_shape[0] / 2)
     if args["output_real_time_gif"]:
-        original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
-        center_z = int(original_shape[0] / 2)
         output.output_gif(args, np.array(real_time_maps),
                           f"{args['output_path_prefix']}_real_time.gif", center_z, args["min_z_coord"],
                           args["max_z_coord"])

@@ -24,12 +24,14 @@ def main() -> None:
     center_z = int(original_shape[0] / 2)
     if args["output_real_time_gif"]:
         output.output_gif(args, np.array(real_time_maps),
-                          f"{args['output_path_prefix']}_real_time.gif", center_z, args["min_z_coord"],
+                          f"{args['output_path_prefix']}_real_time.gif", center_z,
+                          args["min_z_coord"] + args["tip_bottom_z_dist"],
                           args["max_z_coord"])
     if args["output_raster_gif"]:
         if len(rasterized_maps) > 0:
             output.output_gif(args, rasterized_maps,
-                              f"{args['output_path_prefix']}_rasterized.gif", center_z, args["min_z_coord"],
+                              f"{args['output_path_prefix']}_rasterized.gif", center_z,
+                              args["min_z_coord"] + args["tip_bottom_z_dist"],
                               args["max_z_coord"])
     if args["output_post"]:
         post_analysis(args, real_time_maps, rasterized_maps, original_shape=get_hdf5_size(
@@ -276,7 +278,7 @@ def get_hdf5_size(filename: str) -> tuple[int, int, int]:
 
 
 if __name__ == "__main__":
-    # main()
+    main()
     # print((utils.get_coordinate_list(4, 8, 185.0, 75.0)))
     # output.make_bw_legend(70)
     # output.make_matplot_legend(0, 80, 'gist_rainbow')
@@ -285,16 +287,16 @@ if __name__ == "__main__":
     # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
 
     # args = arguments.parse_arguments()
-    pickle_dict = output.load_pickle("multi-passive.pickle")
-    args = pickle_dict["args"]
-    real_time_maps = pickle_dict["real_time_maps"]
-    rasterized_maps = pickle_dict["rasterized_maps"]
-    original_shape = (80, 80, 80)
-    center_z = int(original_shape[0] / 2)
-    output.output_gif(args, rasterized_maps,
-                      f"{args['output_path_prefix']}_rasterized_maps.gif", center_z, args["min_z_coord"],
-                      args["max_z_coord"])
-    post_analysis(args, real_time_maps, needle_maps=rasterized_maps, original_shape=original_shape)
+    # pickle_dict = output.load_pickle("multi-passive.pickle")
+    # args = pickle_dict["args"]
+    # real_time_maps = pickle_dict["real_time_maps"]
+    # rasterized_maps = pickle_dict["rasterized_maps"]
+    # original_shape = (80, 80, 80)
+    # center_z = int(original_shape[0] / 2)
+    # output.output_gif(args, rasterized_maps,
+    #                   f"{args['output_path_prefix']}_rasterized_maps.gif", center_z, args["min_z_coord"],
+    #                   args["max_z_coord"])
+    # post_analysis(args, real_time_maps, needle_maps=rasterized_maps, original_shape=original_shape)
 
     # print(utils.concentration_to_amount(200e-6, 1500.0))
     # print(utils.amount_to_concentration(100.0, 1500.0))

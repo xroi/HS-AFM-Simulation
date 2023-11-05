@@ -285,7 +285,7 @@ if __name__ == "__main__":
     # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
 
     # args = arguments.parse_arguments()
-    pickle_dict = output.load_pickle("multi-ntr.pickle")
+    pickle_dict = output.load_pickle("multi-passive.pickle")
     args = pickle_dict["args"]
     real_time_maps = pickle_dict["real_time_maps"]
     rasterized_maps = pickle_dict["rasterized_maps"]

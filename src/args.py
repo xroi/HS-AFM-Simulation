@@ -115,7 +115,10 @@ def parse_arguments() -> dict[str, any]:
                         help="Specifies the last pixel on the Z axis on which the simulation is ran (not inclusive). "
                              "Count starting from 0.",
                         required=True)
-
+    parser.add_argument("--tip-bottom-z-dist",
+                        type=int,
+                        help="Specifies the distance from min-z-coord upon reaching which the tip stops.",
+                        required=True)
     parser.add_argument('--vertical-scanning',
                         action=argparse.BooleanOptionalAction,
                         help="If true, scans the lines vertically.")

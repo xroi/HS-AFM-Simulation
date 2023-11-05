@@ -43,15 +43,10 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
     # Normalize count maps
     norm_factor = args["interval_ns"] / args["statistics_interval_ns"]
     fgs_counts_map = fgs_counts_map / norm_factor
-
-    inner_r = int((args["tunnel_radius_a"] - args["slab_thickness_a"] / 2) / args["voxel_size_a"])
-    center_x_partial = fgs_counts_map.shape[0] / 2
-    center_y_partial = fgs_counts_map.shape[1] / 2
     for x, y in product(range(fgs_counts_map.shape[0]), range(fgs_counts_map.shape[1])):
         slab_top_z = get_slab_top_z(x + args["min_x_coord"], y + args["min_y_coord"], centers, args) - args[
             "min_z_coord"]
         counts_sum = 0.0
-        is_in_center = utils.is_in_circle(x, y, inner_r, center_x_partial, center_y_partial)
         for z in range(fgs_counts_map.shape[2] - 1, -1, -1):
             for fg_i in np.nonzero(fgs_counts_map[x, y, z, :])[0]:
                 counts_sum += fgs_counts_map[x, y, z, fg_i] * fg_weights[fg_i]
@@ -85,8 +80,10 @@ def get_slab_top_z(x: int, y: int, centers: tuple[int, int, int], args: dict[str
                                            args["tunnel_radius_a"] / args["voxel_size_a"],
                                            (args["slab_thickness_a"] / args["voxel_size_a"]) / 2)
     else:
-        slab_top_z = -1 if utils.is_in_circle(x, y, args["tunnel_radius_a"] / args["voxel_size_a"], centers[0],
-                                              centers[1]) else centers[2] + (
+        slab_top_z = args["tip_bottom_z_dist"] if utils.is_in_circle(x, y,
+                                                                     args["tunnel_radius_a"] / args["voxel_size_a"],
+                                                                     centers[0],
+                                                                     centers[1]) else centers[2] + (
                 (args["slab_thickness_a"] / 2) / args["voxel_size_a"])
     return slab_top_z
 

@@ -32,13 +32,15 @@ def main() -> None:
                               f"{args['output_path_prefix']}_rasterized.gif", center_z, args["min_z_coord"],
                               args["max_z_coord"])
     if args["output_post"]:
-        post_analysis(args, real_time_maps, rasterized_maps)
+        post_analysis(args, real_time_maps, rasterized_maps, original_shape=get_hdf5_size(
+            f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
+                      )
 
 
-def post_analysis(args: dict[str, any], real_time_maps: list[np.ndarray], needle_maps: list[np.ndarray]) -> None:
+def post_analysis(args: dict[str, any], real_time_maps: list[np.ndarray], needle_maps: list[np.ndarray],
+                  original_shape: tuple[int, int, int]) -> None:
     real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 1)
     taus = auto_corr.calculate_taus(real_time_acorrs)
-    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
     center_x = int(original_shape[0] / 2)
     center_y = int(original_shape[1] / 2)
     center_z = int(original_shape[2] / 2)
@@ -62,7 +64,7 @@ def post_analysis(args: dict[str, any], real_time_maps: list[np.ndarray], needle
     output.visualize_height_by_radial_distance(ring_means,
                                                f"{args['output_path_prefix']}_height_radial_real_time.png",
                                                sym=True,
-                                               yrange=[5, 20])
+                                               yrange=[0, 14])
     output.visualize_tcf_samples(real_time_acorrs, taus, 5, 5, f"{args['output_path_prefix']}_tcf_samples.png")
 
 
@@ -169,15 +171,15 @@ def enlarge_floater_size(floater_individual_counts_maps: np.ndarray, floater_siz
         shift_y = int(y - mid_y)
         shift_z = int(z - mid_z)
         mask = np.roll(mid_masks[i], (shift_x, shift_y, shift_z), axis=(0, 1, 2))
-        if shift_x > 0:
+        if shift_x >= 0:
             mask[:shift_x, :, :] = 0
         else:
             mask[shift_x:, :, :] = 0
-        if shift_y > 0:
+        if shift_y >= 0:
             mask[:, :shift_y, :] = 0
         else:
             mask[:, shift_y:, :] = 0
-        if shift_z > 0:
+        if shift_z >= 0:
             mask[:, :, :shift_z] = 0
         else:
             mask[:, :, shift_z:] = 0
@@ -197,15 +199,15 @@ def enlarge_sideways(maps, r):
         shift_y = int(y - mid_y)
         shift_z = int(z - mid_z)
         new_mask = np.roll(mask, (shift_x, shift_y, shift_z), axis=(0, 1, 2))
-        if shift_x > 0:
+        if shift_x >= 0:
             new_mask[:shift_x, :, :] = 0
         else:
             new_mask[shift_x:, :, :] = 0
-        if shift_y > 0:
+        if shift_y >= 0:
             new_mask[:, :shift_y, :] = 0
         else:
             new_mask[:, shift_y:, :] = 0
-        if shift_z > 0:
+        if shift_z >= 0:
             new_mask[:, :, :shift_z] = 0
         else:
             new_mask[:, :, shift_z:] = 0
@@ -274,7 +276,7 @@ def get_hdf5_size(filename: str) -> tuple[int, int, int]:
 
 
 if __name__ == "__main__":
-    main()
+    # main()
     # print((utils.get_coordinate_list(4, 8, 185.0, 75.0)))
     # output.make_bw_legend(70)
     # output.make_matplot_legend(0, 80, 'gist_rainbow')
@@ -283,14 +285,16 @@ if __name__ == "__main__":
     # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
 
     # args = arguments.parse_arguments()
-    # pickle_dict = output.load_pickle("10mM.pickle")
-    # args = pickle_dict["args"]
-    # rasterized_maps = pickle_dict["real_time_maps"][:100]
-    # original_shape = (80, 80, 80)
-    # center_z = int(original_shape[0] / 2)
-    # output.output_gif(args, rasterized_maps,
-    #                   f"{args['output_path_prefix']}_real_time_maps.gif", center_z, args["min_z_coord"],
-    #                   args["max_z_coord"])
+    pickle_dict = output.load_pickle("multi-ntr.pickle")
+    args = pickle_dict["args"]
+    real_time_maps = pickle_dict["real_time_maps"]
+    rasterized_maps = pickle_dict["rasterized_maps"]
+    original_shape = (80, 80, 80)
+    center_z = int(original_shape[0] / 2)
+    output.output_gif(args, rasterized_maps,
+                      f"{args['output_path_prefix']}_rasterized_maps.gif", center_z, args["min_z_coord"],
+                      args["max_z_coord"])
+    post_analysis(args, real_time_maps, needle_maps=rasterized_maps, original_shape=original_shape)
 
     # print(utils.concentration_to_amount(200e-6, 1500.0))
     # print(utils.amount_to_concentration(100.0, 1500.0))

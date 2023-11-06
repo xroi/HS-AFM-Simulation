@@ -92,14 +92,19 @@ def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
     :param args: User arguments.
     :return: List of all height maps, for each point of time.
     """
+    size_x = args["max_x_coord"] - args["min_x_coord"]
+    size_y = args["max_y_coord"] - args["min_y_coord"]
     tip_threshold = args["tip_custom_threshold"]  # todo not using get_needle_threshold
     original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
     centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
     fg_pdfs = calculate_normal_pdf(0, args["max_z_coord"] - args["min_z_coord"] + 1, 0,
                                    args["fgs_sigma_a"] / args["voxel_size_a"])
-    floater_pdfs = calculate_normal_pdf(0, centers[2] * 2, centers[2],
-                                        args["floaters_sigma_a"] / args["voxel_size_a"])
-    pdfs = (fg_pdfs, floater_pdfs)
+    floater_z_pdfs = calculate_normal_pdf(0, centers[2] * 2, centers[2],
+                                          args["floaters_sigma_a"] / args["voxel_size_a"])
+    floater_radial_pdfs = calculate_normal_pdf(0, int(np.sqrt((size_x / 2) ** 2 + (size_y / 2) ** 2) + 1), 0,
+                                               ((args["tunnel_radius_a"] - 1 * (args["slab_thickness_a"] / 4)) / args[
+                                                   "voxel_size_a"]))
+    pdfs = (fg_pdfs, floater_z_pdfs, floater_radial_pdfs)
     stages_total = int(args["simulation_end_time_ns"] / args["interval_ns"] - args["simulation_start_time_ns"] /
                        args["interval_ns"])
 
@@ -110,17 +115,24 @@ def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
 
 
 def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int, int, int],
-                             pdfs: tuple[dict[int, float], dict[int, float]], tip_threshold: float) -> np.array:
+                             pdfs: tuple[dict[int, float], dict[int, float], dict[int, float]],
+                             tip_threshold: float) -> np.array:
     """loads and calculates the height map for a single file/point of time. """
     # Load the file
     fgs_counts_map, floaters_counts_map, floater_sizes = load_individual_counts_maps(time, args)
     # Enlarge the floaters data to better represent their actual size.
     if args["enlarge_floaters"]:
         floaters_counts_map = enlarge_floater_size(floaters_counts_map, floater_sizes)
-    # enlarge the maps sideways to simulate needle size:
-    fgs_counts_map = enlarge_sideways(fgs_counts_map, args["tip_radius_px"])
+    # enlarge the maps sideways to simulate needle size: todo this is slow (gaussian 25% is slower)
+
+    # fgs_counts_map = enlarge_sideways(fgs_counts_map, args["tip_radius_px"])
+    # if len(floater_sizes) != 0:
+    #     floaters_counts_map = enlarge_sideways(floaters_counts_map, args["tip_radius_px"])
+
+    fgs_counts_map = scipy.ndimage.gaussian_filter(fgs_counts_map, sigma=1, radius=1, axes=(0, 1))
     if len(floater_sizes) != 0:
-        floaters_counts_map = enlarge_sideways(floaters_counts_map, args["tip_radius_px"])
+        floaters_counts_map = scipy.ndimage.gaussian_filter(floaters_counts_map, sigma=1, radius=1, axes=(0, 1))
+
     # Perform the height calculation
     height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, tip_threshold,
                                                    centers, pdfs, floater_sizes, args)
@@ -132,18 +144,29 @@ def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int
 
 def get_real_time_maps_helper_parallel(args, get_single, stages_total):
     """Parallel operation of get_real_time_maps"""
-    p = Pool(args["n_cores"]) if args["n_cores"] else Pool()
-    if args["progress_bar"]:
-        real_time_maps = list(tqdm.tqdm(p.imap(
-            get_single,
-            range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"])),
-            total=stages_total, colour='WHITE'))
+    if args["n_cores"] > 1:
+        p = Pool(args["n_cores"]) if args["n_cores"] else Pool()
+        if args["progress_bar"]:
+            real_time_maps = list(tqdm.tqdm(p.imap(
+                get_single,
+                range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"])),
+                total=stages_total, colour='WHITE'))
+        else:
+            real_time_maps = list(p.imap(
+                get_single,
+                range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"])))
+        p.close()
+        p.join()
     else:
-        real_time_maps = list(p.imap(
-            get_single,
-            range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"])))
-    p.close()
-    p.join()
+        if args["progress_bar"]:
+            real_time_maps = list(tqdm.tqdm(map(
+                get_single,
+                range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"])),
+                total=stages_total, colour='WHITE'))
+        else:
+            real_time_maps = list(map(
+                get_single,
+                range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"])))
     return real_time_maps
 
 
@@ -281,7 +304,7 @@ if __name__ == "__main__":
     main()
     # print((utils.get_coordinate_list(4, 8, 185.0, 75.0)))
     # output.make_bw_legend(70)
-    # output.make_matplot_legend(0, 80, 'gist_rainbow')
+    # output.make_matplot_legend(0, 40, 'gist_rainbow')
 
     # pickle_dict = output.load_pickle("Outputs/12-10-2023-NTR-BATCH/0.pickle")
     # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])

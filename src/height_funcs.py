@@ -18,7 +18,8 @@ def get_fg_weights_by_distance(counts_map: np.ndarray, fgs_pdf: dict[int, float]
 
 
 def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.ndarray, tip_threshold: float,
-                         centers: tuple[int, int, int], pdfs: tuple[dict[int, float], dict[int, float]],
+                         centers: tuple[int, int, int],
+                         pdfs: tuple[dict[int, float], dict[int, float], dict[int, float]],
                          floater_sizes: list[float], args: dict[str, any]) -> np.ndarray:
     """
     Calculates an AFM height map according to the count maps.
@@ -30,8 +31,9 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
     specific pixel.
     :param centers: The actual coordinates of the centers of the simulation, (according to system of coordinates of
     the bounding box - not the limits given to the AFM simulation).
-    :param pdfs: A tuple with two elements: each is a dict which hold precalculated values of the pdf of normal
-    distribution, one used to weigh the FGs, and the other used to weigh the floaters.
+    :param pdfs: A tuple with three elements: each is a dict which hold precalculated values of the pdf of normal
+    distribution, one used to weigh the FGs, and the other used to weigh the floaters vertially, and one used to
+    weight the floaters radially.
     :param floater_sizes: A list of floater sizes according to the order they appear in axis 4 in floaters_counts_map.
     :param args: User arguments.
     :return: A 2d numpy array where each entry represents the Z at which the simulated AFM tip has stopped. This is
@@ -43,7 +45,9 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
     # Normalize count maps
     norm_factor = args["interval_ns"] / args["statistics_interval_ns"]
     fgs_counts_map = fgs_counts_map / norm_factor
+    afm_centers = (fgs_counts_map.shape[0] / 2, fgs_counts_map.shape[1] / 2)
     for x, y in product(range(fgs_counts_map.shape[0]), range(fgs_counts_map.shape[1])):
+        dist_from_center = int(np.sqrt((afm_centers[0] - x) ** 2 + (afm_centers[1] - y) ** 2))
         slab_top_z = get_slab_top_z(x + args["min_x_coord"], y + args["min_y_coord"], centers, args) - args[
             "min_z_coord"]
         counts_sum = 0.0
@@ -51,10 +55,10 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
             for fg_i in np.nonzero(fgs_counts_map[x, y, z, :])[0]:
                 counts_sum += fgs_counts_map[x, y, z, fg_i] * fg_weights[fg_i]
             for floater_i in np.nonzero(floaters_counts_map[x, y, z, :])[0]:
-                # floater_weight = pdfs[1][z + args["min_z_coord"]] * (floater_sizes[floater_i] ** 3) * args[
-                #     "floater_general_factor"]
-                floater_weight = pdfs[1][z + args["min_z_coord"]] * args[
-                    "floater_general_factor"]  # todo no size weighing
+                floater_weight = pdfs[1][z + args["min_z_coord"]] * \
+                                 pdfs[2][dist_from_center] * \
+                                 floater_sizes[floater_i] * \
+                                 args["floater_general_factor"]
                 counts_sum += floaters_counts_map[x, y, z, floater_i] * floater_weight
             if (counts_sum > tip_threshold) or (z < slab_top_z):
                 height_map[x, y] = z + args["min_z_coord"]

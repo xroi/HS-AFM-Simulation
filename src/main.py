@@ -43,6 +43,7 @@ def post_analysis(args: dict[str, any], real_time_maps: list[np.ndarray], needle
                   original_shape: tuple[int, int, int]) -> None:
     real_time_acorrs = auto_corr.temporal_auto_correlate(real_time_maps, 1)
     taus = auto_corr.calculate_taus(real_time_acorrs)
+    original_centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
     center_x = int(original_shape[0] / 2)
     center_y = int(original_shape[1] / 2)
     center_z = int(original_shape[2] / 2)
@@ -63,11 +64,17 @@ def post_analysis(args: dict[str, any], real_time_maps: list[np.ndarray], needle
                                             int(real_time_maps[0].shape[0] / 2),
                                             int(real_time_maps[0].shape[1] / 2))
     ring_means = (ring_means - center_z)
+    args2 = args
+    args2["tip_radius_px"] = 0
+    envelope_heights = np.array(
+        [height_funcs.get_slab_top_z(x, center_y, original_centers, args2) - original_centers[2] - 0.5
+         for x in range(len(ring_means) - 1, -1, -1)])
     output.visualize_height_by_radial_distance(ring_means,
+                                               envelope_heights,
                                                f"{args['output_path_prefix']}_height_radial_real_time.png",
                                                sym=True,
                                                yrange=[0, 14])
-    output.visualize_tcf_samples(real_time_acorrs, taus, 5, 5, f"{args['output_path_prefix']}_tcf_samples.png")
+    # output.visualize_tcf_samples(real_time_acorrs, taus, 5, 5, f"{args['output_path_prefix']}_tcf_samples.png")
 
 
 def calculate_normal_pdf(min_z: int, max_z: int, mu: float, sigma: float) -> dict[int, float]:
@@ -129,9 +136,11 @@ def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int
     # if len(floater_sizes) != 0:
     #     floaters_counts_map = enlarge_sideways(floaters_counts_map, args["tip_radius_px"])
 
-    fgs_counts_map = scipy.ndimage.gaussian_filter(fgs_counts_map, sigma=1, radius=1, axes=(0, 1))
+    fgs_counts_map = scipy.ndimage.gaussian_filter(fgs_counts_map, sigma=args["tip_radius_px"],
+                                                   radius=args["tip_radius_px"], axes=(0, 1))
     if len(floater_sizes) != 0:
-        floaters_counts_map = scipy.ndimage.gaussian_filter(floaters_counts_map, sigma=1, radius=1, axes=(0, 1))
+        floaters_counts_map = scipy.ndimage.gaussian_filter(floaters_counts_map, sigma=args["tip_radius_px"],
+                                                            radius=args["tip_radius_px"], axes=(0, 1))
 
     # Perform the height calculation
     height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, tip_threshold,

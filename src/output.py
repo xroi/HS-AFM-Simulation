@@ -60,25 +60,33 @@ def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, cente
     fig.write_image(file_path, width=500, height=500)
 
 
-def visualize_height_by_radial_distance(ring_means, file_path, sym=False, yrange=None):
+def visualize_height_by_radial_distance(ring_means, envelope_heights, file_path, sym=False, yrange=None):
     """ring means is a 2d array where axis1 are the means over time, and axis2 are different runs
     todo allow this and show on lower opacity"""
     max_r = len(ring_means)
     if sym:
         x = [i for i in range(-max_r + 1, max_r)]
         y = np.concatenate((np.flip(ring_means), ring_means))
+        envelope_heights = np.concatenate((np.flip(envelope_heights), envelope_heights))
     else:
         x = [i for i in range(max_r)]
         y = ring_means
-    fig = go.Figure(data=go.Scatter(x=x, y=y, mode='lines+markers'))
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=x, y=y, mode='lines+markers', line=dict(width=6), marker=dict(size=8),
+                             name="Mean AFM Simulation Height"))
+    fig.add_trace(go.Scatter(x=x, y=envelope_heights, mode='lines', line=dict(width=4), name="Nuclear Envelope"))
+    fig.data[0].line.color = "#de0b0b"
+    fig.data[1].line.color = "#474644"
     fig.update_layout(xaxis_title="Distance from center (nm)",
-                      yaxis_title="Mean height (nm)",
-                      font=dict(size=20),
+                      yaxis_title="Height (nm)",
+                      font=dict(size=40),
                       template="plotly_white",
-                      xaxis=dict(dtick=10))
+                      xaxis=dict(dtick=5),
+                      yaxis=dict(dtick=5))
     if yrange:
         fig.update_layout(yaxis_range=yrange)
-    fig.write_image(file_path)
+    fig.write_image(file_path, width=4000,
+                    height=int((yrange[1] - yrange[0]) * 4000 / 80))
 
 
 def visualize_tcf_samples(acorrs, taus, dist_px, amount, file_path):

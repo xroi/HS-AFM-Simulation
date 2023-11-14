@@ -77,15 +77,17 @@ def get_slab_top_z(x: int, y: int, centers: tuple[int, int, int], args: dict[str
     :return: The slab top z (i.e. the bottom limit for the tip), at a specific point. This is in the bounding box
     system of coordinates (todo: might be changed).
     """
+    # Subtract tip radius from tunnel radius to account for tip size
+    accounted_tunnel_radius_px = (args["tunnel_radius_a"] / args["voxel_size_a"]) - args["tip_radius_px"]
     if args["torus_slab"]:
         slab_top_z = utils.get_torus_top_z(x,
                                            y,
                                            centers,
-                                           args["tunnel_radius_a"] / args["voxel_size_a"],
+                                           accounted_tunnel_radius_px,
                                            (args["slab_thickness_a"] / args["voxel_size_a"]) / 2, inside=centers[2])
     else:
         slab_top_z = centers[2] if utils.is_in_circle(x, y,
-                                                      args["tunnel_radius_a"] / args["voxel_size_a"],
+                                                      accounted_tunnel_radius_px,
                                                       centers[0],
                                                       centers[1]) else centers[2] + (
                 (args["slab_thickness_a"] / 2) / args["voxel_size_a"])

@@ -113,7 +113,7 @@ def get_torus_top_z(x: int, y: int, centers: tuple[int, int, int], r: int, p: in
     if not is_in_circle(x, y, r, centers[0], centers[1]):
         return centers[2] + p
     point_r = np.sqrt((x - centers[0]) ** 2 + (y - centers[1]) ** 2)
-    return int(np.sqrt(p ** 2 - (r - point_r) ** 2) + centers[2])
+    return np.sqrt(p ** 2 - (r - point_r) ** 2) + centers[2]
 
 
 def torus_inner_radius(r: float, p: float, z: int):

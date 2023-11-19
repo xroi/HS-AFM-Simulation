@@ -67,13 +67,13 @@ def post_analysis(args: dict[str, any], real_time_maps: list[np.ndarray], needle
     args2 = args
     args2["tip_radius_px"] = 0
     envelope_heights = np.array(
-        [height_funcs.get_slab_top_z(x, center_y, original_centers, args2) - original_centers[2] - 0.5
-         for x in range(len(ring_means) - 1, -1, -1)])
+        [height_funcs.get_slab_top_z(x, center_y, original_centers, args2) - original_centers[2]
+         for x in range(center_x, center_x - len(ring_means), -1)])
     output.visualize_height_by_radial_distance(ring_means,
                                                envelope_heights,
                                                f"{args['output_path_prefix']}_height_radial_real_time.png",
                                                sym=True,
-                                               yrange=[0, 14])
+                                               yrange=[0, 10])
     # output.visualize_tcf_samples(real_time_acorrs, taus, 5, 5, f"{args['output_path_prefix']}_tcf_samples.png")
 
 
@@ -311,54 +311,6 @@ def get_hdf5_size(filename: str) -> tuple[int, int, int]:
 
 if __name__ == "__main__":
     main()
-    # print((utils.get_coordinate_list(4, 8, 185.0, 75.0)))
-    # output.make_bw_legend(70)
-    # output.make_matplot_legend(0, 40, 'gist_rainbow')
-
-    # pickle_dict = output.load_pickle("Outputs/12-10-2023-NTR-BATCH/0.pickle")
-    # post_analysis(pickle_dict["args"], pickle_dict["real_time_maps"], pickle_dict["needle_maps"])
-
-    # args = arguments.parse_arguments()
-    # pickle_dict = output.load_pickle("multi-passive.pickle")
-    # args = pickle_dict["args"]
-    # real_time_maps = pickle_dict["real_time_maps"]
-    # rasterized_maps = pickle_dict["rasterized_maps"]
-    # original_shape = (80, 80, 80)
-    # center_z = int(original_shape[0] / 2)
-    # output.output_gif(args, rasterized_maps,
-    #                   f"{args['output_path_prefix']}_rasterized_maps.gif", center_z, args["min_z_coord"],
-    #                   args["max_z_coord"])
-    # post_analysis(args, real_time_maps, needle_maps=rasterized_maps, original_shape=original_shape)
-
-    # print(utils.concentration_to_amount(200e-6, 1500.0))
-    # print(utils.amount_to_concentration(100.0, 1500.0))
-
-    # arr = np.zeros(shape=(100, 100, 100))
-    # for _ in range(5000):
-    #     utils.get_ball_mask(arr, 50, 50, 50, 1)
-
-    # args = arguments.parse_arguments()
-    # print(args)
-    # fg_maps = []
-    # for i in range(args["simulation_start_time_ns"], args["simulation_end_time_ns"], args["interval_ns"]):
-    #     fgs_counts_map, floaters_counts_map, floater_sizes = get_individual_counts_maps(i, args)
-    #     fg_maps.append(floaters_counts_map)
-    #     print(i)
-    # inner, outer = utils.calculate_z_distribution(np.stack(fg_maps, axis=-1),
-    #                                               int((args["tunnel_radius_a"] - args["slab_thickness_a"] / 2) / args[
-    #                                                   "voxel_size_a"]))
-    # print(inner.tolist())
-    # print(outer.tolist())
-
-    # output.visualize_energy_plot(
-    #     [-487.1813466285061, -769.1351780149706, -1133.930491931361, -1209.5056373480468, -1263.1785601103497,
-    #      -1186.7903747206635, -1205.9046124873373, -1140.012596728273, -1154.5651876646546, -1094.1982466023708,
-    #      -1143.1312865679906, -1152.084457782134, -1226.8488343372987, -1299.1298467482216, -1239.7789673942002,
-    #      -1163.3445511454859, -1292.5000727242186, -1147.3718651812883, -1169.1973118226733, -1131.865399012099,
-    #      -1107.0605916621223, -1255.6150727376846, -1353.4630679567576, -1416.6883595228971, -1495.7820859061874,
-    #      -1524.5199267186877, -1460.8948215553316, -1414.2131414895334, -1375.4931270172203, -1487.8541176975089,
-    #      -1357.7532280620137, -1280.6090141287377, -1259.2699877612088, -1285.400544531966, -1279.7246970938022,
-    #      -1220.9682692414885, -1195.103044133666], "t.png")
 
 
 ###########

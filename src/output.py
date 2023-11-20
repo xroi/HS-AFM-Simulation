@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import pickle
 import plotly.express as px
@@ -9,18 +9,41 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def output_gif(args, maps, filename, z_center, min_z, max_z):
+def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp=False, max_frames=240, add_legend=False,
+               crop_from_sides_px=0):
     """z_center is the real center"""
     images = []
-    for height_map in maps:
+    if timestamp:
+        font = ImageFont.truetype('arial.ttf', 60)
+    if add_legend:
+        legend_fig = make_matplot_legend(0, max_z - min_z + 1, args["output_gif_color_map"])
+        legend_im = fig2img(legend_fig)
+        hpercent = (args["output_resolution_y"] / float(legend_im.size[1]))
+        wsize = int((float(legend_im.size[0]) * float(hpercent)))
+        legend_im = legend_im.resize((wsize, args["output_resolution_y"]), Image.Resampling.LANCZOS)
+        legend_im = legend_im.crop((int((legend_im.size[0] / 2) + 50), 0, legend_im.size[0] - 50, legend_im.size[1]))
+    for i, height_map in enumerate(maps):
+        height_map = height_map[crop_from_sides_px:-crop_from_sides_px, crop_from_sides_px:-crop_from_sides_px]
         scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
         cm = plt.get_cmap(args["output_gif_color_map"])
         data = cm(scaled_map)
         im = Image.fromarray((data[:, :, :3] * 255).astype(np.uint8), 'RGB')
         im = im.resize((args["output_resolution_y"], args["output_resolution_x"]), resample=Image.BOX).rotate(angle=90,
                                                                                                               expand=1)
+        if timestamp:
+            id = ImageDraw.Draw(im)
+            id.text((30, 30), f"{((i * args['interval_ns']) / 1000):.3f} μs",
+                    fill=(0, 0, 0),
+                    font=font)
+        if add_legend:
+            new_im = Image.new('RGB', (im.size[0] + legend_im.size[0], im.size[1]), (250, 250, 250))
+            new_im.paste(im, (0, 0))
+            new_im.paste(legend_im, (im.size[0], 0))
+            im = new_im
         images.append(im)
-    images[0].save(filename, append_images=images[1:], save_all=True, duration=150, loop=0)
+        if i == max_frames:
+            break
+    images[0].save(filename, append_images=images[1:], save_all=True, duration=42, loop=0)
 
 
 def save_pickle(real_time_maps, needle_maps, args, file_name):
@@ -171,11 +194,22 @@ def make_bw_legend(height):
 
 def make_matplot_legend(min, max, color_map):
     ax = plt.subplot()
-    im = ax.imshow(np.arange(min, max, 10).reshape(int((max - min) / 10), 1), cmap=color_map)
+    im = ax.imshow(np.arange(min, max, 10).reshape(int((max - min) / 10) + 1, 1), cmap=color_map)
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="30%", pad=1)
     plt.colorbar(im, cax=cax, label="Height from center plane (nm)")
-    plt.show()
+    # plt.show()
+    return plt
+
+
+def fig2img(fig):
+    """Convert a Matplotlib figure to a PIL Image and return it"""
+    import io
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    buf.seek(0)
+    img = Image.open(buf)
+    return img
 
 
 def visualize_energy_plot(y, file_path):

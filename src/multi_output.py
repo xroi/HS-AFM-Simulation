@@ -1,10 +1,7 @@
 import numpy as np
-import pickle
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import output
 import utils
-import auto_corr
 import height_funcs
 
 

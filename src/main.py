@@ -26,7 +26,7 @@ def main() -> None:
         output.output_gif(args, np.array(real_time_maps),
                           f"{args['output_path_prefix']}_real_time.gif", center_z,
                           center_z,
-                          args["max_z_coord"])
+                          args["max_z_coord"], timestamp=True)
     if args["output_raster_gif"]:
         if len(rasterized_maps) > 0:
             output.output_gif(args, rasterized_maps,

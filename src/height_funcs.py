@@ -1,7 +1,6 @@
 import numpy as np
 from itertools import product
 import scipy.stats
-import DATA_distributions
 import utils
 
 

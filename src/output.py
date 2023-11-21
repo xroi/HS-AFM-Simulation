@@ -16,12 +16,12 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp=False, ma
     if timestamp:
         font = ImageFont.truetype('arial.ttf', 60)
     if add_legend:
-        legend_fig = make_matplot_legend(0, max_z - min_z + 1, args["output_gif_color_map"])
+        legend_fig = make_matplot_colorbar(0, max_z - min_z + 1, args["output_gif_color_map"])
         legend_im = fig2img(legend_fig)
         hpercent = (args["output_resolution_y"] / float(legend_im.size[1]))
         wsize = int((float(legend_im.size[0]) * float(hpercent)))
         legend_im = legend_im.resize((wsize, args["output_resolution_y"]), Image.Resampling.LANCZOS)
-        legend_im = legend_im.crop((int((legend_im.size[0] / 2) + 50), 0, legend_im.size[0] - 50, legend_im.size[1]))
+        legend_im = legend_im.crop((int((legend_im.size[0] / 2) + 80), 0, legend_im.size[0] - 250, legend_im.size[1]))
     for i, height_map in enumerate(maps):
         height_map = height_map[crop_from_sides_px:-crop_from_sides_px, crop_from_sides_px:-crop_from_sides_px]
         scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
@@ -192,14 +192,26 @@ def make_bw_legend(height):
     make_3_color_legend(height, "rgb(0, 0, 0)", "rgb(127, 127, 127)", "rgb(255, 255, 255)")
 
 
-def make_matplot_legend(min, max, color_map):
+def make_matplot_colorbar(min, max, color_map):
     ax = plt.subplot()
-    im = ax.imshow(np.arange(min, max, 10).reshape(int((max - min) / 10) + 1, 1), cmap=color_map)
+    im = ax.imshow(np.arange(min, max, 5).reshape(int((max - min) / 5) + 1, 1), cmap=color_map)
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="30%", pad=1)
-    plt.colorbar(im, cax=cax, label="Height from center plane (nm)")
+    plt.colorbar(im, cax=cax, label="Height (nm)")
     # plt.show()
     return plt
+
+
+def make_plotly_colorbar(min, max, color_map_name):
+    # Create a heatmap
+    fig = go.Figure(data=go.Heatmap(
+        z=[[min, max]],
+        colorscale=matplotlib_to_plotly(plt.get_cmap(color_map_name), 255),
+        showscale=True  # This shows the colorbar
+    ))
+    # Hide the heatmap
+    # fig.data[0].update(z=[[None, None]], showscale=True)
+    fig.show()
 
 
 def fig2img(fig):
@@ -220,3 +232,14 @@ def visualize_energy_plot(y, file_path):
                       font=dict(size=20),
                       template="plotly_white")
     fig.write_image(file_path)
+
+
+def matplotlib_to_plotly(cmap, pl_entries):
+    h = 1.0 / (pl_entries - 1)
+    pl_colorscale = []
+
+    for k in range(pl_entries):
+        C = list(map(np.uint8, np.array(cmap(k * h)[:3]) * 255))
+        pl_colorscale.append([k * h, 'rgb' + str((C[0], C[1], C[2]))])
+
+    return pl_colorscale

@@ -8,17 +8,6 @@ from functools import partial
 import raster
 
 
-def matplotlib_to_plotly(cmap, pl_entries):
-    h = 1.0 / (pl_entries - 1)
-    pl_colorscale = []
-
-    for k in range(pl_entries):
-        C = list(map(np.uint8, np.array(cmap(k * h)[:3]) * 255))
-        pl_colorscale.append([k * h, 'rgb' + str((C[0], C[1], C[2]))])
-
-    return pl_colorscale
-
-
 def taus_tick_val(i, voxel_size, center, dtick):
     if i % dtick != 0:
         return ""
@@ -84,7 +73,7 @@ def visualize_creation(real_time_maps, rasterized_maps):
                         # shared_yaxes='all'
                         )
     cm = plt.get_cmap("jet")
-    cm = matplotlib_to_plotly(cm, 255)
+    cm = output.matplotlib_to_plotly(cm, 255)
 
     fig.add_trace(
         go.Heatmap(z=np.swapaxes(rasterized_maps[0], 0, 1)[35:45, 35:45] - 40,

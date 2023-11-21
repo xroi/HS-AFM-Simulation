@@ -102,3 +102,13 @@ def get_times_array(size_x, size_y, time_per_line, time_per_pixel):
         # Advance the time variable by the time it takes to move across a line.
         total_time += time_per_line
     return times
+
+
+def modulo_raster(real_time_maps, args, max_images):
+    modulo_maps = []
+    for _ in range(max_images):
+        modulo_maps.append(get_rasterized_maps(real_time_maps, args)[0])
+        first = real_time_maps[0]
+        real_time_maps = real_time_maps[1:]
+        real_time_maps.append(first)
+    return modulo_maps

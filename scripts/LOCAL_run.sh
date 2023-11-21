@@ -1,5 +1,5 @@
 #!/bin/csh -f
-#SBATCH --mem=2g
+#SBATCH --mem=4g
 #SBATCH --time=7-0
 #SBATCH --mail-type=ALL
 

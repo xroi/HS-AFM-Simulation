@@ -9,11 +9,12 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp=False, max_frames=240, add_legend=False,
-               crop_from_sides_px=0):
+def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp_step=-1, max_frames=240, add_legend=False,
+               crop_from_sides_px=0, draw_inner_circle_r=-1, draw_outer_circle_r=-1, as_images=False,
+               frame_duration=42):
     """z_center is the real center"""
     images = []
-    if timestamp:
+    if timestamp_step != -1:
         font = ImageFont.truetype('arial.ttf', 60)
     if add_legend:
         legend_fig = make_matplot_colorbar(0, max_z - min_z + 1, args["output_gif_color_map"])
@@ -23,18 +24,33 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp=False, ma
         legend_im = legend_im.resize((wsize, args["output_resolution_y"]), Image.Resampling.LANCZOS)
         legend_im = legend_im.crop((int((legend_im.size[0] / 2) + 80), 0, legend_im.size[0] - 250, legend_im.size[1]))
     for i, height_map in enumerate(maps):
-        height_map = height_map[crop_from_sides_px:-crop_from_sides_px, crop_from_sides_px:-crop_from_sides_px]
+        if crop_from_sides_px > 0:
+            height_map = height_map[crop_from_sides_px:-crop_from_sides_px, crop_from_sides_px:-crop_from_sides_px]
         scaled_map = (height_map - min_z) / (max_z - 1 - min_z)
         cm = plt.get_cmap(args["output_gif_color_map"])
         data = cm(scaled_map)
         im = Image.fromarray((data[:, :, :3] * 255).astype(np.uint8), 'RGB')
         im = im.resize((args["output_resolution_y"], args["output_resolution_x"]), resample=Image.BOX).rotate(angle=90,
                                                                                                               expand=1)
-        if timestamp:
-            id = ImageDraw.Draw(im)
-            id.text((30, 30), f"{((i * args['interval_ns']) / 1000):.3f} μs",
-                    fill=(0, 0, 0),
+        id = ImageDraw.Draw(im, "RGBA")
+        if timestamp_step != -1:
+            id.text((30, 30), f"{(i * timestamp_step):.3f} μs",
+                    fill=(0, 0, 0, 255),
                     font=font)
+        if draw_inner_circle_r != -1:
+            r = draw_inner_circle_r * args["output_resolution_x"] / (
+                    maps[0].shape[0] - crop_from_sides_px * 2)
+            id.ellipse([(im.size[0] / 2 - r),
+                        (im.size[1] / 2 - r),
+                        (im.size[0] / 2 + r),
+                        (im.size[1] / 2 + r)],
+                       outline=(0, 0, 0, 125), width=5)
+        if draw_outer_circle_r != -1:
+            r = draw_outer_circle_r * args["output_resolution_x"] / (
+                    maps[0].shape[0] - crop_from_sides_px * 2)
+            id.ellipse([(im.size[0] / 2 - r), (im.size[1] / 2 - r),
+                        (im.size[0] / 2 + r), (im.size[1] / 2 + r)],
+                       outline=(0, 0, 0, 125), width=5)
         if add_legend:
             new_im = Image.new('RGB', (im.size[0] + legend_im.size[0], im.size[1]), (250, 250, 250))
             new_im.paste(im, (0, 0))
@@ -43,7 +59,12 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp=False, ma
         images.append(im)
         if i == max_frames:
             break
-    images[0].save(filename, append_images=images[1:], save_all=True, duration=42, loop=0)
+    if as_images:
+        for i, im in enumerate(images):
+            im.save(f"{i}_{filename}")
+    else:
+        # As gif
+        images[0].save(filename, append_images=images[1:], save_all=True, duration=frame_duration, loop=0)
 
 
 def save_pickle(real_time_maps, needle_maps, args, file_name):

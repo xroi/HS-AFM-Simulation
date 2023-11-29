@@ -91,9 +91,9 @@ def get_times(args: dict[str, any], size_x: int) -> tuple[float, float]:
     return time_per_line, time_per_pixel
 
 
-def get_times_array(size_x, size_y, time_per_line, time_per_pixel):
+def get_times_array(size_x, size_y, time_per_line, time_per_pixel, reset_time, raster_i):
     times = np.zeros(shape=(size_x, size_y))
-    total_time = time_per_pixel
+    total_time = time_per_pixel + (time_per_line * size_y * 2 + reset_time) * raster_i
     for y in range(size_y):
         for x in range(size_x):
             times[x, y] = total_time

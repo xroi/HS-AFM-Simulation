@@ -26,7 +26,7 @@ def main() -> None:
         output.output_gif(args, np.array(real_time_maps),
                           f"{args['output_path_prefix']}_real_time.gif", center_z,
                           center_z,
-                          args["max_z_coord"], timestamp=True)
+                          args["max_z_coord"])
     if args["output_raster_gif"]:
         if len(rasterized_maps) > 0:
             output.output_gif(args, rasterized_maps,
@@ -196,8 +196,8 @@ def enlarge_floater_size(floater_individual_counts_maps: np.ndarray, floater_siz
     mid_y = int(shape[1] / 2)
     mid_z = int(shape[2] / 2)
     # Calculating only len(floater_sized) masks and simply shifting them instead of calculating a mask for every point,
-    mid_masks = [utils.get_top_of_ball_mask(floater_individual_counts_maps[:, :, :, 0], mid_x, mid_y, mid_z,
-                                            floater_sizes[i]) for i in range(len(floater_sizes))]
+    mid_masks = [utils.get_half_ball_mask(floater_individual_counts_maps[:, :, :, 0], mid_x, mid_y, mid_z,
+                                          floater_sizes[i]) for i in range(len(floater_sizes))]
     # For each non zero coordinate, move the respective mask into position, and set the values in the area of the
     # mask to be the same as the coordinate. todo : set the coordinate to 0
     for (x, y, z, i) in zip(*np.nonzero(floater_individual_counts_maps)):

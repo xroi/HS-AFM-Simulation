@@ -22,6 +22,12 @@ def get_ball_mask(arr: np.ndarray, x: int, y: int, z: int, r: int):
     return dist_from_center < r
 
 
+def get_half_ball_mask(arr: np.ndarray, x: int, y: int, z: int, r: int):
+    mask = get_ball_mask(arr, x, y, z, r)
+    mask[:, :, :z] = 0
+    return mask
+
+
 def get_top_of_ball_mask(arr: np.ndarray, x: int, y: int, z: int, r: int):
     ball = get_ball_mask(arr, x, y, z, r)
     smaller_ball = get_ball_mask(arr, x, y, z, r - 1)

@@ -16,7 +16,7 @@ def taus_tick_val(i, voxel_size, center, dtick):
 
 def visualize_creation(real_time_maps, rasterized_maps):
     color_scale = (0, 13)
-    raster_i = 3
+    raster_i = 6
     times = raster.get_times_array(40, 40, 400, 10, 0, raster_i)
     shapes = []
     # def get_title(x, y):
@@ -193,4 +193,4 @@ def visualize_creation(real_time_maps, rasterized_maps):
     # fig.update_layout(legend={"xanchor": "right", "x": 1.00})
     # fig.update_layout(yaxis=dict(scaleanchor='x'))
 
-    fig.write_image("creation_fig_new.png", width=5500, height=3350)
+    fig.write_image("creation_fig.png", width=5500, height=3350)

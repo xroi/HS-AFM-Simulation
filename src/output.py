@@ -7,10 +7,11 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import moviepy.editor as mp
 
 
 def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp_step=-1, max_frames=240, add_legend=False,
-               crop_from_sides_px=0, draw_inner_circle_r=-1, draw_outer_circle_r=-1, as_images=False,
+               crop_from_sides_px=0, draw_inner_circle_r=-1, draw_outer_circle_r=-1, as_images=False, as_mp4=False,
                frame_duration=42):
     """z_center is the real center"""
     images = []
@@ -65,6 +66,9 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp_step=-1, 
     else:
         # As gif
         images[0].save(filename, append_images=images[1:], save_all=True, duration=frame_duration, loop=0)
+        if as_mp4:
+            clip = mp.VideoFileClip(filename)
+            clip.write_videofile(f"{filename}.mp4")
 
 
 def save_pickle(real_time_maps, needle_maps, args, file_name):

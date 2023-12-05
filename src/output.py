@@ -62,7 +62,7 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp_step=-1, 
             break
     if as_images:
         for i, im in enumerate(images):
-            im.save(f"{i}_{filename}")
+            im.save(f"{filename}_{i}.png")
     else:
         # As gif
         images[0].save(filename, append_images=images[1:], save_all=True, duration=frame_duration, loop=0)

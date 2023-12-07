@@ -19,7 +19,7 @@ def do_multi_analysis(paths, output_prefix):
                                                      real_time_maps[i][0].shape[1] / 2) - 40)
     envelope_heights = np.array(
         [height_funcs.get_slab_top_z(x, 20, (20, 20, 40), args2) - 40
-         for x in range(20, 20 + 25)])
+         for x in range(20, 20 + 26)])
     # ring_means = [ring_means[0], ring_means[-1]]
     visualize_height_by_radial_distance(ring_means, envelope_heights,
                                         ["0μM",

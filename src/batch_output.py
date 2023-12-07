@@ -5,57 +5,87 @@ from plotly.subplots import make_subplots
 import output
 import utils
 import auto_corr
+from scipy.stats import sem
 
 
-def visualize_height_by_radial_distance(ring_means, file_path, sym=False, yrange=None, outer_radius_px=None,
-                                        inner_radius_px=None):
+def visualize_height_by_radial_distance(ring_means_1, ring_means_2, envelope_heights, file_path, sym=False,
+                                        yrange=None, type="std"):
     """ring means is an array of 2d arrays"""
     fig = go.Figure()
-    max_r = len(ring_means[0])
+    max_r = len(ring_means_1[0])
     if sym:
         x = [i for i in range(-max_r + 1, max_r)]
-        y = [np.concatenate((np.flip(ring_mean), ring_mean)) for ring_mean in ring_means]
+        y_1 = [np.concatenate((np.flip(ring_mean)[:-1], ring_mean)) for ring_mean in ring_means_1]
+        y_2 = [np.concatenate((np.flip(ring_mean)[:-1], ring_mean)) for ring_mean in ring_means_2]
+        envelope_heights = np.concatenate((np.flip(envelope_heights)[:-1], envelope_heights))
     else:
         x = [i for i in range(max_r)]
-        y = ring_means
-    for i in range(len(ring_means)):
-        fig.add_trace(go.Scatter(x=x, y=y[i], mode='lines', opacity=0.5, line_color='#2e15e8'))
-    mean_y = np.mean(np.stack(y, axis=0), axis=0)
-    fig.add_trace(go.Scatter(x=x, y=mean_y, mode='lines', opacity=1,
-                             line_color='#eb0514'))
+        y_1 = ring_means_1
+        y_2 = ring_means_2
+    # for i in range(len(ring_means_1)):
+    #     fig.add_trace(go.Scatter(x=x, y=y_1[i], mode='lines', opacity=1,
+    #                              line=dict(width=2), marker=dict(size=2, color='#342feb'), showlegend=False))
+    # for i in range(len(ring_means_2)):
+    #     fig.add_trace(go.Scatter(x=x, y=y_2[i], mode='lines', opacity=1,
+    #                              line=dict(width=2), marker=dict(size=2, color='#342feb'), showlegend=False))
+    mean_y_1 = np.mean(np.stack(y_1, axis=0), axis=0)
+    mean_y_2 = np.mean(np.stack(y_2, axis=0), axis=0)
+    if type == "std":
+        y_1_upper = mean_y_1 + np.std(np.stack(y_1, axis=0), axis=0)
+        y_1_lower = mean_y_1 - np.std(np.stack(y_1, axis=0), axis=0)
+        y_2_upper = mean_y_2 + np.std(np.stack(y_2, axis=0), axis=0)
+        y_2_lower = mean_y_2 - np.std(np.stack(y_2, axis=0), axis=0)
+    elif type == "sem":
+        y_1_upper = mean_y_1 + sem(np.stack(y_1, axis=0), axis=0)
+        y_1_lower = mean_y_1 - sem(np.stack(y_1, axis=0), axis=0)
+        y_2_upper = mean_y_2 + sem(np.stack(y_2, axis=0), axis=0)
+        y_2_lower = mean_y_2 - sem(np.stack(y_2, axis=0), axis=0)
+
+    y_1_color = '#00d2eb'
+    y_1_band_color = "rgba(0,0,0,0.5)"
+    y_2_color = '#1100EB'
+    y_2_band_color = "rgba(0,0,0,0.5)"
+    fig.add_trace(go.Scatter(x=x, y=y_1_upper,
+                             line=dict(width=0, color=y_1_color),
+                             showlegend=False))
+    fig.add_trace(go.Scatter(x=x, y=mean_y_1, mode='lines', opacity=1,
+                             line=dict(width=6, color=y_1_color), fill='tonexty', fillcolor=y_1_band_color,
+                             name="0μM (n=50)"))
+    fig.add_trace(go.Scatter(x=x, y=y_1_lower,
+                             line=dict(width=0, color=y_1_color),
+                             fillcolor=y_1_band_color,
+                             fill='tonexty',
+                             showlegend=False))
+
+    fig.add_trace(go.Scatter(x=x, y=y_2_upper,
+                             line=dict(width=0, color=y_2_color),
+                             showlegend=False))
+    fig.add_trace(go.Scatter(x=x, y=mean_y_2, mode='lines', opacity=1,
+                             line=dict(width=6, color=y_2_color), fill='tonexty', fillcolor=y_2_band_color,
+                             name="200μM (n=50)"))
+    fig.add_trace(go.Scatter(x=x, y=y_2_lower,
+                             line=dict(width=0, color=y_2_color),
+                             fillcolor=y_2_band_color,
+                             fill='tonexty',
+                             showlegend=False))
+
     fig.update_layout(xaxis_title="Distance from center (nm)",
-                      yaxis_title="Mean height (nm)",
-                      font=dict(size=20),
+                      yaxis_title="Height (nm)",
+                      font=dict(size=40),
                       template="plotly_white",
-                      xaxis=dict(dtick=10),
-                      showlegend=False)
-    if outer_radius_px and inner_radius_px:
-        for val in [(inner_radius_px, "inner"), (outer_radius_px, "outer")]:
-            fig.add_annotation(
-                x=val[0],
-                y=yrange[0],
-                xref="x",
-                yref="y",
-                # text=val[1],
-                showarrow=True,
-                font=dict(
-                    family="Courier New, monospace",
-                    size=16,
-                    color="#000000"
-                ),
-                align="center",
-                arrowhead=2,
-                arrowsize=1,
-                arrowwidth=2,
-                arrowcolor="#636363",
-                # bordercolor="#000000",
-                ax=0,
-                ay=-30,
-                opacity=0.8
-            )
+                      xaxis=dict(dtick=2.5),
+                      yaxis=dict(dtick=2.5))
+    fig.add_trace(
+        go.Scatter(x=list(range(-25, 26)), y=envelope_heights, mode='lines', line=dict(width=12, color="#2e2f30"),
+                   name="Nuclear Envelope", fill='tozeroy', fillcolor='#2e2f30'))
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='#9e9d99', zerolinecolor='#9e9d99')
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='#9e9d99')
+    fig.add_hline(y=7.5, line_width=0, line_dash="dash", line_color="Black", annotation_text="Nuclear Envelope",
+                  annotation_position="top left")
+    fig.update_yaxes(scaleratio=1)
     if yrange:
-        fig.update_layout(yaxis_range=yrange)
-    fig.write_image(file_path)
+        fig.update_layout(yaxis_range=yrange, xaxis_range=[-25, 25])
+    fig.write_image(file_path, width=3000, height=700)
 
 
 def visualize_tau_by_radial_distance(ring_means, file_path, sym=False, yrange=False, outer_radius_px=None,

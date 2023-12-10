@@ -1,7 +1,7 @@
 #!/bin/csh -f
 set IMP_FOLDER=/cs/labs/ravehb/ravehb/imp/fast_conda/
 set IMP=$IMP_FOLDER/setup_environment.sh
-set SCR=/cs/labs/ravehb/ravehb/imp/repository/modules/npctransport/utility/add_cylinder.py
+set SCR=/cs/labs/ravehb/ravehb/imp/repository_editing/modules/npctransport/utility/add_cylinder.py
 source /cs/labs/ravehb/ravehb/External/venv_imp2023_v2/bin/activate.csh
 
 if ($#argv != 3) then

@@ -1,7 +1,7 @@
 #!/bin/csh -f
 set IMP_FOLDER=/cs/labs/ravehb/ravehb/imp/fast_conda/
 set IMP=$IMP_FOLDER/setup_environment.sh
-set SCR=/cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/NPC_rmf_to_pdb_v3.py
+set SCR=/cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/scripts/chimera/NPC_rmf_to_pdb_v3.py
 source /cs/labs/ravehb/ravehb/External/venv_imp2023_v2/bin/activate.csh
 
 if ($#argv != 3) then

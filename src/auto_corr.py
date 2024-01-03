@@ -4,12 +4,13 @@ import statsmodels.api as statsmodels
 from scipy.optimize import curve_fit
 
 
-def temporal_auto_correlate(maps: list[np.ndarray], window_size: int):
+def temporal_auto_correlate(maps: list[np.ndarray], window_size: int, nlags=None):
     """
     Calculates the temporal auto correlation of each pixel with itself over different time lags.
     """
     stacked_maps = np.dstack(maps)
-    nlags = int(min(10 * np.log10(stacked_maps.shape[2]), stacked_maps.shape[2] - 1)) + 1
+    if not nlags:
+        nlags = int(min(10 * np.log10(stacked_maps.shape[2]), stacked_maps.shape[2] - 1)) + 1
     temporal_auto_correlations = np.zeros(
         shape=(stacked_maps.shape[0] - window_size + 1, stacked_maps.shape[1] - window_size + 1, nlags))
     for x, y in product(range(temporal_auto_correlations.shape[0]), range(temporal_auto_correlations.shape[1])):
@@ -17,7 +18,7 @@ def temporal_auto_correlate(maps: list[np.ndarray], window_size: int):
         if np.all(vec == vec[0]):
             temporal_auto_correlations[x, y, :] = np.ones(shape=nlags)
         else:
-            temporal_auto_correlations[x, y, :] = statsmodels.tsa.stattools.acf(vec)
+            temporal_auto_correlations[x, y, :] = statsmodels.tsa.stattools.acf(vec, nlags=nlags - 1)
     return temporal_auto_correlations
 
 

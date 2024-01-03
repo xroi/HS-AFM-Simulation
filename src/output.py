@@ -12,11 +12,13 @@ import moviepy.editor as mp
 
 def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp_step=-1, max_frames=240, add_legend=False,
                crop_from_sides_px=0, draw_inner_circle_r=-1, draw_outer_circle_r=-1, as_images=False, as_mp4=False,
-               frame_duration=42):
+               frame_duration=42, add_scale=False):
     """z_center is the real center"""
     images = []
     if timestamp_step != -1:
-        font = ImageFont.truetype('arial.ttf', 60)
+        timestamp_font = ImageFont.truetype('arial.ttf', 60)
+    if add_scale is True:
+        scale_font = ImageFont.truetype('arial.ttf', 30)
     if add_legend:
         legend_fig = make_matplot_colorbar(0, max_z - min_z + 1, args["output_gif_color_map"])
         legend_im = fig2img(legend_fig)
@@ -34,24 +36,27 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp_step=-1, 
         im = im.resize((args["output_resolution_y"], args["output_resolution_x"]), resample=Image.BOX).rotate(angle=90,
                                                                                                               expand=1)
         id = ImageDraw.Draw(im, "RGBA")
+        pixel_size = args["output_resolution_x"] / (maps[0].shape[0] - crop_from_sides_px * 2)
         if timestamp_step != -1:
-            id.text((30, 30), f"{(i * timestamp_step):.3f} μs",
-                    fill=(0, 0, 0, 255),
-                    font=font)
+            id.text((30, 30), f"{(i * timestamp_step):.3f} μs", fill=(0, 0, 0, 255), font=timestamp_font)
         if draw_inner_circle_r != -1:
-            r = draw_inner_circle_r * args["output_resolution_x"] / (
-                    maps[0].shape[0] - crop_from_sides_px * 2)
+            r = draw_inner_circle_r * pixel_size
             id.ellipse([(im.size[0] / 2 - r),
                         (im.size[1] / 2 - r),
                         (im.size[0] / 2 + r),
                         (im.size[1] / 2 + r)],
                        outline=(0, 0, 0, 125), width=5)
         if draw_outer_circle_r != -1:
-            r = draw_outer_circle_r * args["output_resolution_x"] / (
-                    maps[0].shape[0] - crop_from_sides_px * 2)
+            r = draw_outer_circle_r * pixel_size
             id.ellipse([(im.size[0] / 2 - r), (im.size[1] / 2 - r),
                         (im.size[0] / 2 + r), (im.size[1] / 2 + r)],
                        outline=(0, 0, 0, 125), width=5)
+        if add_scale is True:
+            scale_text_coords = (im.size[0] - 7 * pixel_size, im.size[1] - 4.5 * pixel_size)
+            scale_coords = [im.size[0] - 7 * pixel_size, im.size[1] - 3 * pixel_size,
+                            im.size[0] - 2 * pixel_size, im.size[1] - 2 * pixel_size]
+            id.text(scale_text_coords, f"5 nm", fill=(0, 0, 0, 255), font=scale_font)
+            id.rectangle(scale_coords, fill="#000000")
         if add_legend:
             new_im = Image.new('RGB', (im.size[0] + legend_im.size[0], im.size[1]), (250, 250, 250))
             new_im.paste(im, (0, 0))
@@ -84,28 +89,42 @@ def load_pickle(file_name):
 
 
 def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, center_y, dtick, file_path):
+    cm = plt.get_cmap("jet")
+    # cm = matplotlib_to_plotly(cm, 255, zero_color="(255, 255, 255)")
+    cm = matplotlib_to_plotly(cm, 255, zero_color=None)
     voxel_size = voxel_size / 10
     fig = go.Figure()
-    fig.add_trace(go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau (μs)'}))
+    # fig.add_trace(
+    #     go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau (μs)'}, zmin=0, zmax=0.25, colorscale=cm))
+    fig.add_trace(
+        go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Corr after 0.45us'}, zmin=0, zmax=0.4,
+                   colorscale=cm))
     fig.layout.height = 500
     fig.layout.width = 500
     fig.update_layout(xaxis={
         "tickmode": 'array',
-        "tickvals": [i for i in range(int(taus.shape[0]))],
-        "ticktext": [taus_tick_val(i, voxel_size, center_x, dtick) for i in
-                     range(int(min_x), int(max_x))]
+        "tickvals": [i - 0.5 for i in range(0, 41, 5)],
+        "ticktext": [i for i in range(-20, 21, 5)]
     }, yaxis={
         "tickmode": 'array',
-        "tickvals": [i for i in range(int(taus.shape[1]))],
-        "ticktext": [taus_tick_val(i, voxel_size, center_y, dtick) for i in
-                     range(int(min_y), int(max_y))]
+        "tickvals": [i - 0.5 for i in range(0, 41, 5)],
+        "ticktext": [i for i in range(-20, 21, 5)]
     })
     fig.update_layout(title="",
-                      yaxis={"title": 'Distance from center (nm)'},
-                      xaxis={"title"    : 'Distance from center (nm)',
+                      yaxis={"title": 'Distance (nm)'},
+                      xaxis={"title"    : 'Distance (nm)',
                              "tickangle": 0},
                       font=dict(size=20))
-    fig.write_image(file_path, width=500, height=500)
+    fig.add_shape(
+        {'type': "circle", 'x0': 8.5 - 0.5, 'y0': 8.5 - 0.5, 'x1': 31.5 + 0.5, 'y1': 31.5 + 0.5,
+         'xref': f'x',
+         'yref': f'y', "line": dict(width=2, color="Black"), 'opacity': 0.7}, )
+    fig.add_shape(
+        {'type': "circle", 'x0': 1 - 0.5, 'y0': 1 - 0.5, 'x1': 39 + 0.5, 'y1': 39 + 0.5,
+         'xref': 'x',
+         'yref': 'y', "line": dict(width=2, color="Black"), 'opacity': 0.7}, )
+    fig.update_layout(yaxis=dict(scaleanchor='x'))
+    fig.write_image(file_path, width=550, height=500)
 
 
 def visualize_height_by_radial_distance(ring_means, envelope_heights, file_path, sym=False, yrange=None):
@@ -142,17 +161,18 @@ def visualize_height_by_radial_distance(ring_means, envelope_heights, file_path,
     fig.write_image(file_path, width=3000, height=700)
 
 
-def visualize_tcf_samples(acorrs, taus, dist_px, amount, file_path):
+def visualize_tcf_samples(acorrs, taus, dist_px, amount, file_path, show_model=True):
+    factor = 0.01
     nlags = acorrs.shape[2]
     fig = make_subplots(rows=1,
                         cols=amount,
                         subplot_titles=[
                             f"({int(acorrs.shape[0] / 2) + i * dist_px},{int(acorrs.shape[1] / 2)}) tau="
-                            f"{taus[int(acorrs.shape[0] / 2) + i * dist_px, int(acorrs.shape[1] / 2)]}μs"
+                            f"{'%.3f' % (taus[int(acorrs.shape[0] / 2) + i * dist_px, int(acorrs.shape[1] / 2)] * factor)}μs"
                             for i
-                            in range(nlags)],
+                            in range(amount)],
                         shared_yaxes='all')
-    x = [i for i in range(nlags)]
+    x = [i * factor for i in range(nlags)]
     for i in range(amount):
         x_coord = int(acorrs.shape[0] / 2) + i * dist_px
         y_coord = int(acorrs.shape[1] / 2)
@@ -161,11 +181,12 @@ def visualize_tcf_samples(acorrs, taus, dist_px, amount, file_path):
             row=1,
             col=i + 1
         )
-        fig.add_trace(
-            go.Scatter(x=x, y=[auto_corr.model_func(j, taus[x_coord, y_coord]) for j in range(nlags)],
-                       line_color="#000be0"),
-            row=1, col=i + 1
-        )
+        if show_model:
+            fig.add_trace(
+                go.Scatter(x=x, y=[auto_corr.model_func(j, taus[x_coord, y_coord]) for j in range(nlags)],
+                           line_color="#000be0"),
+                row=1, col=i + 1
+            )
     fig.update_layout(font=dict(size=20),
                       template="plotly_white",
                       width=1000 * amount,
@@ -174,6 +195,7 @@ def visualize_tcf_samples(acorrs, taus, dist_px, amount, file_path):
                       showlegend=False,
                       yaxis_title="Correlation",
                       xaxis_title="Time Lag (μs)")
+    fig.update_yaxes(type="log")
     fig.write_image(file_path, width=800 * amount, height=800)
 
 
@@ -259,12 +281,15 @@ def visualize_energy_plot(y, file_path):
     fig.write_image(file_path)
 
 
-def matplotlib_to_plotly(cmap, pl_entries):
+def matplotlib_to_plotly(cmap, pl_entries, zero_color=None):
     h = 1.0 / (pl_entries - 1)
     pl_colorscale = []
 
     for k in range(pl_entries):
-        C = list(map(np.uint8, np.array(cmap(k * h)[:3]) * 255))
-        pl_colorscale.append([k * h, 'rgb' + str((C[0], C[1], C[2]))])
+        if k == 0 and zero_color != None:
+            pl_colorscale.append([k * h, 'rgb' + zero_color])
+        else:
+            C = list(map(np.uint8, np.array(cmap(k * h)[:3]) * 255))
+            pl_colorscale.append([k * h, 'rgb' + str((C[0], C[1], C[2]))])
 
     return pl_colorscale

@@ -153,7 +153,7 @@ def concentration_to_amount(molar: float, box_side_a: float):
     return (molar * AVOGADRO * volume) / 1e+27
 
 
-def amount_to_concentration(amount: int, box_side_a: float):
+def amount_to_concentration(amount: float, box_side_a: float):
     volume = np.power(box_side_a, 3)
     return amount / (AVOGADRO * volume * 1e-27)
 

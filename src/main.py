@@ -11,6 +11,7 @@ from multiprocessing import Pool
 from functools import partial
 import tqdm
 import gzip
+import io
 
 
 def main() -> None:
@@ -264,6 +265,8 @@ def load_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.nda
     """
     if args["read_from_gzip"]:
         with gzip.open(f"{args['input_path']}/{time}{args['input_suffix']}", "rb") as f:
+            data = f.read()
+            f = io.BytesIO(data)
             f = h5py.File(f, "r")
             return process_individual_counts_maps(args, f)
     else:

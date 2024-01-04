@@ -10,6 +10,7 @@ import auto_corr
 from multiprocessing import Pool
 from functools import partial
 import tqdm
+import gzip
 
 
 def main() -> None:
@@ -261,44 +262,52 @@ def load_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.nda
         axis 0: x-axis. axis 1: y-axis. axis 2: z-axis. axis 3: floater type.
     [2]: list of floater sizes in angstrom, corresponding with axis 3 in [1].
     """
+    if args["read_from_gzip"]:
+        with gzip.open(f"{args['input_path']}/{time}{args['input_suffix']}", "r") as f:
+            f = h5py.File(f, "r")
+            return process_individual_counts_maps(args, f)
+    else:
+        with h5py.File(f"{args['input_path']}/{time}{args['input_suffix']}", "r") as f:
+            return process_individual_counts_maps(args, f)
+
+
+def process_individual_counts_maps(args: dict[str, any], f: h5py.File) -> tuple[np.ndarray, np.ndarray, list[float]]:
     x_size = args["max_x_coord"] - args["min_x_coord"]
     y_size = args["max_y_coord"] - args["min_y_coord"]
     z_size = args["max_z_coord"] - args["min_z_coord"]
-
-    with h5py.File(f"{args['input_path']}/{time}{args['input_suffix']}", "r") as f:
-        fg_data = f["fg_xyz_hist"]
+    fg_data = f["fg_xyz_hist"]
+    if args["separate_n_c"]:
+        fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, int(len(fg_data.keys()) / 2)))
+    else:
+        fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(fg_data.keys())))
+    for i, key in enumerate(fg_data.keys()):
         if args["separate_n_c"]:
-            fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, int(len(fg_data.keys()) / 2)))
-        else:
-            fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(fg_data.keys())))
-        for i, key in enumerate(fg_data.keys()):
-            if args["separate_n_c"]:
-                if i % 2 == 0:
-                    fg_individual_counts_maps[:, :, :, int(i / 2)] += np.array(
-                        fg_data[key][args["min_x_coord"]:args["max_x_coord"],
-                        args["min_y_coord"]:args["max_y_coord"],
-                        args["min_z_coord"]:args["max_z_coord"]])
-                else:
-                    fg_individual_counts_maps[:, :, :, int((i - 1) / 2)] += np.array(
-                        fg_data[key][args["min_x_coord"]:args["max_x_coord"],
-                        args["min_y_coord"]:args["max_y_coord"],
-                        args["min_z_coord"]:args["max_z_coord"]])
-            else:
-                fg_individual_counts_maps[:, :, :, i] = np.array(fg_data[key][args["min_x_coord"]:args["max_x_coord"],
-                                                                 args["min_y_coord"]:args["max_y_coord"],
-                                                                 args["min_z_coord"]:args["max_z_coord"]])
-        floater_data = f["floater_xyz_hist"]
-        floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
-        floater_sizes = []
-        if args["floaters_resistance"]:
-            for i, key in enumerate(floater_data.keys()):
-                floater_individual_counts_maps[:, :, :, i] = np.array(
-                    floater_data[key][args["min_x_coord"]:args["max_x_coord"],
+            if i % 2 == 0:
+                fg_individual_counts_maps[:, :, :, int(i / 2)] += np.array(
+                    fg_data[key][args["min_x_coord"]:args["max_x_coord"],
                     args["min_y_coord"]:args["max_y_coord"],
                     args["min_z_coord"]:args["max_z_coord"]])
-                # Get the size of the floater according to its IMP type name.
-                size = int(float(''.join(map(str, list(filter(str.isdigit, key))))) / args["voxel_size_a"])
-                floater_sizes.append(size)
+            else:
+                fg_individual_counts_maps[:, :, :, int((i - 1) / 2)] += np.array(
+                    fg_data[key][args["min_x_coord"]:args["max_x_coord"],
+                    args["min_y_coord"]:args["max_y_coord"],
+                    args["min_z_coord"]:args["max_z_coord"]])
+        else:
+            fg_individual_counts_maps[:, :, :, i] = np.array(fg_data[key][args["min_x_coord"]:args["max_x_coord"],
+                                                             args["min_y_coord"]:args["max_y_coord"],
+                                                             args["min_z_coord"]:args["max_z_coord"]])
+    floater_data = f["floater_xyz_hist"]
+    floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
+    floater_sizes = []
+    if args["floaters_resistance"]:
+        for i, key in enumerate(floater_data.keys()):
+            floater_individual_counts_maps[:, :, :, i] = np.array(
+                floater_data[key][args["min_x_coord"]:args["max_x_coord"],
+                args["min_y_coord"]:args["max_y_coord"],
+                args["min_z_coord"]:args["max_z_coord"]])
+            # Get the size of the floater according to its IMP type name.
+            size = int(float(''.join(map(str, list(filter(str.isdigit, key))))) / args["voxel_size_a"])
+            floater_sizes.append(size)
     return fg_individual_counts_maps, floater_individual_counts_maps, floater_sizes
 
 

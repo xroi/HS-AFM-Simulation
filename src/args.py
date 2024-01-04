@@ -39,6 +39,10 @@ def parse_arguments() -> dict[str, any]:
                         type=str,
                         help="Files should be in input-path and named <delta_time_in_ns>.<input-suffix>",
                         required=True)
+    parser.add_argument('--read-from-gzip',
+                        action=argparse.BooleanOptionalAction,
+                        help="If true, allows reading from gzip compressed HDF5 files.",
+                        required=True)
 
     # ========================= #
     # NPC SIMULATION PARAMETERS #

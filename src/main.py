@@ -22,7 +22,8 @@ def main() -> None:
     rasterized_maps = raster.get_rasterized_maps(real_time_maps, args)
     if args["output_pickle"]:
         output.save_pickle(real_time_maps, rasterized_maps, args, f"{args['output_path_prefix']}.pickle")
-    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
+    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}",
+                                   args["read_from_gzip"])
     center_z = int(original_shape[0] / 2)
     if args["output_real_time_gif"]:
         output.output_gif(args, np.array(real_time_maps),
@@ -37,7 +38,7 @@ def main() -> None:
                               args["max_z_coord"])
     if args["output_post"]:
         post_analysis(args, real_time_maps, rasterized_maps, original_shape=get_hdf5_size(
-            f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
+            f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}", args["read_from_gzip"])
                       )
 
 
@@ -104,7 +105,8 @@ def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
     size_x = args["max_x_coord"] - args["min_x_coord"]
     size_y = args["max_y_coord"] - args["min_y_coord"]
     tip_threshold = args["tip_custom_threshold"]  # todo not using get_needle_threshold
-    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}")
+    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}",
+                                   args["read_from_gzip"])
     centers = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
     fg_pdfs = calculate_normal_pdf(0, args["max_z_coord"] - args["min_z_coord"] + 1, 0,
                                    args["fgs_sigma_a"] / args["voxel_size_a"])
@@ -265,8 +267,6 @@ def load_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.nda
     """
     if args["read_from_gzip"]:
         with gzip.open(f"{args['input_path']}/{time}{args['input_suffix']}", "rb") as f:
-            data = f.read()
-            f = io.BytesIO(data)
             f = h5py.File(f, "r")
             return process_individual_counts_maps(args, f)
     else:
@@ -314,11 +314,18 @@ def process_individual_counts_maps(args: dict[str, any], f: h5py.File) -> tuple[
     return fg_individual_counts_maps, floater_individual_counts_maps, floater_sizes
 
 
-def get_hdf5_size(filename: str) -> tuple[int, int, int]:
-    with h5py.File(filename, "r") as f:
-        data = f["fg_xyz_hist"]
-        arr = np.array(data[list(data.keys())[0]])
-        return arr.shape
+def get_hdf5_size(filename: str, gzipped: bool) -> tuple[int, int, int]:
+    if gzipped:
+        with gzip.open(filename, "rb") as f:
+            f = h5py.File(f, "r")
+            data = f["fg_xyz_hist"]
+            arr = np.array(data[list(data.keys())[0]])
+            return arr.shape
+    else:
+        with h5py.File(filename, "r") as f:
+            data = f["fg_xyz_hist"]
+            arr = np.array(data[list(data.keys())[0]])
+            return arr.shape
 
 
 if __name__ == "__main__":

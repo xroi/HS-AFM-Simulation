@@ -84,7 +84,7 @@ def parse_arguments() -> dict[str, any]:
                         required=True)
     parser.add_argument('--separate-n-c',
                         action=argparse.BooleanOptionalAction,
-                        help="Specifies if fg chains are sperated into N anc C parts.",
+                        help="Specifies if fg chains are seperated into N and C parts.",
                         required=True)
     # ============== #
     # AFM PARAMETERS #

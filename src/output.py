@@ -1,7 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import pickle
-import plotly.express as px
 import auto_corr
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots

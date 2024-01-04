@@ -1,10 +1,7 @@
 from itertools import product
 import numpy as np
-import utils
 import statsmodels.api as statsmodels
 from scipy.optimize import curve_fit
-import scipy.ndimage
-import sklearn.preprocessing
 
 
 def temporal_auto_correlate(maps: list[np.ndarray], window_size: int = 1, nlags=None, max_freq=0.9):

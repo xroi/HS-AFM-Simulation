@@ -1,6 +1,5 @@
 import numpy as np
 from itertools import product
-import scipy.stats
 import utils
 
 

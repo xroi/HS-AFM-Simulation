@@ -263,7 +263,7 @@ def load_individual_counts_maps(time: int, args: dict[str, any]) -> tuple[np.nda
     [2]: list of floater sizes in angstrom, corresponding with axis 3 in [1].
     """
     if args["read_from_gzip"]:
-        with gzip.open(f"{args['input_path']}/{time}{args['input_suffix']}", "r") as f:
+        with gzip.open(f"{args['input_path']}/{time}{args['input_suffix']}", "rb") as f:
             f = h5py.File(f, "r")
             return process_individual_counts_maps(args, f)
     else:

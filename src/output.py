@@ -97,7 +97,7 @@ def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, cente
     # fig.add_trace(
     #     go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau (μs)'}, zmin=0, zmax=0.25, colorscale=cm))
     fig.add_trace(
-        go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Corr after 0.45us'}, zmin=0, zmax=0.4,
+        go.Heatmap(z=np.fliplr(np.flipud(taus)), colorbar={"title": 'Tau'}, zmin=0, zmax=0.4,
                    colorscale=cm))
     fig.layout.height = 500
     fig.layout.width = 500

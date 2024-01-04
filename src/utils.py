@@ -176,3 +176,9 @@ def calculate_z_distribution(maps: np.ndarray, inner_r: int):
     inner_distribution = inner_distribution / np.linalg.norm(inner_distribution)
     outer_distribution = outer_distribution / np.linalg.norm(outer_distribution)
     return inner_distribution, outer_distribution
+
+
+def normalized(a, axis=-1, order=2):
+    l2 = np.atleast_1d(np.linalg.norm(a, order, axis))
+    l2[l2 == 0] = 1
+    return a / np.expand_dims(l2, axis)

@@ -9,7 +9,16 @@ Nuclear Pore Complex transport module.
 
 ### Requirements
 
-* A system with python 3.6 or higher
+#### OS Requirements
+
+Tested on the following systems:
+
+- Windows 11 Version 10.0.22621 Build 22621
+- Debian GNU/Linux 11 (bullseye)
+
+#### Python Requirements
+
+* Python 3.6 or higher
 * packages listed in requirements.txt
 
 ---

@@ -203,9 +203,9 @@ def parse_arguments() -> dict[str, any]:
     # ================= #
     # OUTPUT PARAMETERS #
     # ================= #
-    parser.add_argument('--output-real-time-gif',
+    parser.add_argument('--output-non-raster-gif',
                         action=argparse.BooleanOptionalAction,
-                        help="Outputs a gif if '--output-real-time-gif', doesn't if --no-output-real-time-gif",
+                        help="Outputs a gif if '--output-non-raster-gif', doesn't if --no-output-non-raster-gif",
                         required=True)
     parser.add_argument('--output-raster-gif',
                         action=argparse.BooleanOptionalAction,
@@ -229,11 +229,11 @@ def parse_arguments() -> dict[str, any]:
                              "'gist_gray' for black and white, 'RdBu' for diverging Red-white-blue, 'gist_rainbow' "
                              "for rainbow.",
                         required=True)
-    parser.add_argument("--output_resolution_x",
+    parser.add_argument("--output-resolution-x",
                         type=int,
                         help="x axis Resolution of output gif in pixels. (Up-scaled from original height Maps size)",
                         required=True)
-    parser.add_argument("--output_resolution_y",
+    parser.add_argument("--output-resolution-y",
                         type=int,
                         help="y axis Resolution of output gif in pixels. (Up-scaled from original height Maps size)",
                         required=True)

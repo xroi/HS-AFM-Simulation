@@ -25,9 +25,9 @@ def main() -> None:
     original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}",
                                    args["read_from_gzip"])
     center_z = int(original_shape[0] / 2)
-    if args["output_real_time_gif"]:
+    if args["output_non_raster_gif"]:
         output.output_gif(args, np.array(real_time_maps),
-                          f"{args['output_path_prefix']}_real_time.gif", center_z,
+                          f"{args['output_path_prefix']}_non_raster.gif", center_z,
                           center_z,
                           args["max_z_coord"])
     if args["output_raster_gif"]:

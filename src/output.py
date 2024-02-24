@@ -75,14 +75,14 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp_step=-1, 
             clip.write_videofile(f"{filename}.mp4")
 
 
-def save_pickle(real_time_maps, needle_maps, args, file_name):
-    save_dict = {'real_time_maps': real_time_maps, 'rasterized_maps': needle_maps, 'args': args}
+def save_pickle(non_rasterized_maps, needle_maps, args, file_name):
+    save_dict = {'non_rasterized_maps': non_rasterized_maps, 'rasterized_maps': needle_maps, 'args': args}
     with open(file_name, 'wb') as f:
         pickle.dump(save_dict, f)
 
 
 def load_pickle(file_name):
-    """returns a dictionary with the following keys: real_time_maps, rasterized_maps, args"""
+    """returns a dictionary with the following keys: non_rasterized_maps, rasterized_maps, args"""
     with open(file_name, 'rb') as f:
         return pickle.load(f)
 
@@ -111,7 +111,7 @@ def visualize_taus(taus, voxel_size, min_x, max_x, min_y, max_y, center_x, cente
     })
     fig.update_layout(title="",
                       yaxis={"title": 'Distance (nm)'},
-                      xaxis={"title"    : 'Distance (nm)',
+                      xaxis={"title": 'Distance (nm)',
                              "tickangle": 0},
                       font=dict(size=20))
     fig.add_shape(

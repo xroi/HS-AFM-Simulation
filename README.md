@@ -37,6 +37,8 @@ git clone https://github.com/xroi/HS-AFM-Simulation.git
 pip install -r requirements.txt
 ```
 
+The typical installation time should be a few minutes.
+
 ---
 
 ### Usage

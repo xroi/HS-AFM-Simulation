@@ -283,22 +283,23 @@ def process_individual_counts_maps(args: dict[str, any], f: h5py.File) -> tuple[
         fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, int(len(fg_data.keys()) / 2)))
     else:
         fg_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(fg_data.keys())))
-    for i, key in enumerate(fg_data.keys()):
-        if args["separate_n_c"]:
-            if i % 2 == 0:
-                fg_individual_counts_maps[:, :, :, int(i / 2)] += np.array(
-                    fg_data[key][args["min_x_coord"]:args["max_x_coord"],
-                    args["min_y_coord"]:args["max_y_coord"],
-                    args["min_z_coord"]:args["max_z_coord"]])
+    if args["fgs_resistance"]:
+        for i, key in enumerate(fg_data.keys()):
+            if args["separate_n_c"]:
+                if i % 2 == 0:
+                    fg_individual_counts_maps[:, :, :, int(i / 2)] += np.array(
+                        fg_data[key][args["min_x_coord"]:args["max_x_coord"],
+                        args["min_y_coord"]:args["max_y_coord"],
+                        args["min_z_coord"]:args["max_z_coord"]])
+                else:
+                    fg_individual_counts_maps[:, :, :, int((i - 1) / 2)] += np.array(
+                        fg_data[key][args["min_x_coord"]:args["max_x_coord"],
+                        args["min_y_coord"]:args["max_y_coord"],
+                        args["min_z_coord"]:args["max_z_coord"]])
             else:
-                fg_individual_counts_maps[:, :, :, int((i - 1) / 2)] += np.array(
-                    fg_data[key][args["min_x_coord"]:args["max_x_coord"],
-                    args["min_y_coord"]:args["max_y_coord"],
-                    args["min_z_coord"]:args["max_z_coord"]])
-        else:
-            fg_individual_counts_maps[:, :, :, i] = np.array(fg_data[key][args["min_x_coord"]:args["max_x_coord"],
-                                                             args["min_y_coord"]:args["max_y_coord"],
-                                                             args["min_z_coord"]:args["max_z_coord"]])
+                fg_individual_counts_maps[:, :, :, i] = np.array(fg_data[key][args["min_x_coord"]:args["max_x_coord"],
+                                                                 args["min_y_coord"]:args["max_y_coord"],
+                                                                 args["min_z_coord"]:args["max_z_coord"]])
     floater_data = f["floater_xyz_hist"]
     floater_individual_counts_maps = np.zeros(shape=(x_size, y_size, z_size, len(floater_data.keys())))
     floater_sizes = []

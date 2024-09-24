@@ -156,6 +156,10 @@ def parse_arguments() -> dict[str, any]:
     #                     help="Determined the fraction of the sum of density needed to be above the z value in order "
     #                          "to return in. Should be between 0 and 1 (inclusive). only used for z_fraction z func.",
     #                     required=True)
+    parser.add_argument("--fgs-resistance",
+                        action=argparse.BooleanOptionalAction,
+                        help="Determines whether nups offer resistance to the simulated tip.",
+                        default=True)
     parser.add_argument("--floaters-resistance",
                         action=argparse.BooleanOptionalAction,
                         help="Determines whether floaters (NTRs and Passive Molecules) offer resistance to the "

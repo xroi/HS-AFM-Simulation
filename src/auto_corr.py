@@ -1,4 +1,5 @@
 from itertools import product
+
 import numpy as np
 import statsmodels.api as statsmodels
 from scipy.optimize import curve_fit

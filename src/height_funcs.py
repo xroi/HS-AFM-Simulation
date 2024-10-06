@@ -1,5 +1,7 @@
-import numpy as np
 from itertools import product
+
+import numpy as np
+
 import utils
 
 

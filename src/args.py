@@ -1,6 +1,6 @@
 import argparse
-import sys
 import shlex
+import sys
 
 
 def validate_args(args) -> None:

@@ -1,12 +1,14 @@
-from PIL import Image, ImageDraw, ImageFont
-import numpy as np
 import pickle
-import auto_corr
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import moviepy.editor as mp
+import numpy as np
+import plotly.graph_objects as go
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from PIL import Image, ImageDraw, ImageFont
+from plotly.subplots import make_subplots
+
+import auto_corr
 
 
 def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp_step=-1, max_frames=240, add_legend=False,

@@ -1,9 +1,10 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import matplotlib.pyplot as plt
-import output
+
 import raster
+from output import output
 
 
 def taus_tick_val(i, voxel_size, center, dtick):

@@ -1,8 +1,9 @@
 import numpy as np
 import plotly.graph_objects as go
-import output
-import utils
+
 import height_funcs
+import utils
+from output import output
 
 
 def do_multi_analysis(paths, output_prefix):

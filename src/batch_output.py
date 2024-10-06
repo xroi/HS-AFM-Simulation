@@ -1,9 +1,11 @@
 import numpy as np
 import plotly.graph_objects as go
-import output
-import utils
-import auto_corr
 from scipy.stats import sem
+
+import auto_corr
+import utils
+from output import output
+
 
 
 def visualize_height_by_radial_distance(ring_means_1, ring_means_2, envelope_heights, file_path, sym=False,

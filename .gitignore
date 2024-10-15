@@ -6,6 +6,8 @@ npctransport configs
 *.gif
 *.rmf
 *.pickle
+*.gz
+*.hdf5
 density_test
 ChannelsFIg
 src/__pycache__

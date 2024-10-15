@@ -160,6 +160,10 @@ def parse_arguments() -> dict[str, any]:
                         action=argparse.BooleanOptionalAction,
                         help="Determines whether nups offer resistance to the simulated tip.",
                         default=True)
+    parser.add_argument("--fgs-verticality-weights",
+                        action=argparse.BooleanOptionalAction,
+                        help="Determines whether nups get weighted by verticality score.",
+                        default=True)
     parser.add_argument("--floaters-resistance",
                         action=argparse.BooleanOptionalAction,
                         help="Determines whether floaters (NTRs and Passive Molecules) offer resistance to the "

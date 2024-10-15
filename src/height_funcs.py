@@ -32,7 +32,7 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
     :param centers: The actual coordinates of the centers of the simulation, (according to system of coordinates of
     the bounding box - not the limits given to the AFM simulation).
     :param pdfs: A tuple with three elements: each is a dict which hold precalculated values of the pdf of normal
-    distribution, one used to weigh the FGs, and the other used to weigh the floaters vertially, and one used to
+    distribution, one used to weigh the FGs, and the other used to weigh the floaters vertically, and one used to
     weight the floaters radially.
     :param floater_sizes: A list of floater sizes according to the order they appear in axis 4 in floaters_counts_map.
     :param args: User arguments.
@@ -41,7 +41,10 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
     """
     height_map = np.ones(shape=fgs_counts_map.shape[:2]) * args["min_z_coord"]
     # Calculate the weights for each fg. this is done once per time step.
-    fg_weights = get_fg_weights_by_distance(fgs_counts_map, pdfs[0])
+    if args["fgs_verticality_weights"]:
+        fg_weights = get_fg_weights_by_distance(fgs_counts_map, pdfs[0])
+    else: 
+        fg_weights = np.ones(shape=fgs_counts_map.shape[3]) * 0.5
     # Normalize count maps
     norm_factor = args["interval_ns"] / args["statistics_interval_ns"]
     fgs_counts_map = fgs_counts_map / norm_factor

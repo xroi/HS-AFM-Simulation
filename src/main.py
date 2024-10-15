@@ -29,12 +29,12 @@ def main() -> None:
         
     if args["output_non_raster_gif"]:
         out_path = f"{args['output_path_prefix']}_non_raster.gif"
-        output.output_gif(args, np.array(real_time_maps), out_path, center_z, center_z, args["max_z_coord"])
+        output.output_gif(args, np.array(real_time_maps), out_path, center_z, center_z, args["max_z_coord"], add_legend=True, timestamp_step=0.001, add_scale=True)
         
     if args["output_raster_gif"]:
         if len(rasterized_maps) > 0:
             out_path = f"{args['output_path_prefix']}_rasterized.gif"
-            output.output_gif(args, rasterized_maps, out_path, center_z, center_z, args["max_z_coord"])
+            output.output_gif(args, rasterized_maps, out_path, center_z, center_z, args["max_z_coord"], add_legend=True)
             
     if args["output_post"]:
         post_analysis(args, real_time_maps, rasterized_maps, original_shape=get_hdf5_size(sample_path, args["read_from_gzip"]))
@@ -125,15 +125,12 @@ def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int
     # if len(floater_sizes) != 0:
     #     floaters_counts_map = enlarge_sideways(floaters_counts_map, args["tip_radius_px"])
 
-    fgs_counts_map = scipy.ndimage.gaussian_filter(fgs_counts_map, sigma=args["tip_radius_px"],
-                                                   radius=args["tip_radius_px"], axes=(0, 1))
+    fgs_counts_map = scipy.ndimage.gaussian_filter(fgs_counts_map, sigma=args["tip_radius_px"], radius=args["tip_radius_px"], axes=(0, 1))
     if len(floater_sizes) != 0:
-        floaters_counts_map = scipy.ndimage.gaussian_filter(floaters_counts_map, sigma=args["tip_radius_px"],
-                                                            radius=args["tip_radius_px"], axes=(0, 1))
+        floaters_counts_map = scipy.ndimage.gaussian_filter(floaters_counts_map, sigma=args["tip_radius_px"], radius=args["tip_radius_px"], axes=(0, 1))
 
     # Perform the height calculation
-    height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, tip_threshold,
-                                                   centers, pdfs, floater_sizes, args)
+    height_map = height_funcs.calculate_height_map(fgs_counts_map, floaters_counts_map, tip_threshold, centers, pdfs, floater_sizes, args)
     if not args["progress_bar"]:
         print(time, flush=True)
 

@@ -19,7 +19,7 @@ Tested on the following systems:
 #### Python Requirements
 
 * Python 3.6 or higher
-* packages listed in requirements.txt
+* Packages listed in requirements.txt
 
 ---
 
@@ -60,68 +60,68 @@ args.txt is a file containing the following arguments:
   -h, --help            show this help message and exit
   --npc-simulation, --no-npc-simulation
                         In the case of --npc-simulation flag, the npc
-                        simulations run 'live'. In the case of --no-npc-
-                        simulation flag, the program uses files in the folder
+                        simulations run 'live'. In the case of --no-npc-       
+                        simulation flag, the program uses files in the folder  
                         specified with --existing_files_path
   --input-path INPUT_PATH
-                        Path to the folder containing hdf5 density map files,
-                        to be used in the case of --no-npc-simulation flag.
+                        Path to the folder containing hdf5 density map files,  
+                        to be used in the case of --no-npc-simulation flag.    
   --input-suffix INPUT_SUFFIX
                         Files should be in input-path and named
                         <delta_time_in_ns>.<input-suffix>
   --read-from-gzip, --no-read-from-gzip
-                        If true, allows reading from gzip compressed HDF5
+                        If true, allows reading from gzip compressed HDF5      
                         files.
   --simulation-start-time-ns SIMULATION_START_TIME_NS
-                        Start time of the AFM simulation in nanoseconds. (NPC
+                        Start time of the AFM simulation in nanoseconds. (NPC  
                         will be simulated since 0)
   --simulation-end-time-ns SIMULATION_END_TIME_NS
-                        End time of the AFM simulation in nanoseconds. (NPC
+                        End time of the AFM simulation in nanoseconds. (NPC    
                         will be simulated since 0)
   --interval-ns INTERVAL_NS
-                        Interval time of the NPC simulation in nanoseconds.
+                        Interval time of the NPC simulation in nanoseconds.    
   --voxel-size-a VOXEL_SIZE_A
-                        Size of each voxel in the NPC simulation in Angstrom.
-                        (Should be the same as specified inthe npc simulation
+                        Size of each voxel in the NPC simulation in Angstrom.  
+                        (Should be the same as specified inthe npc simulation  
                         configuration file).
   --tunnel-radius-a TUNNEL_RADIUS_A
-                        Radius of the NPC tunnel in Angstrom. (Should be the
-                        same as specified inthe npc simulation configuration
+                        Radius of the NPC tunnel in Angstrom. (Should be the   
+                        same as specified inthe npc simulation configuration   
                         file).
   --slab-thickness-a SLAB_THICKNESS_A
-                        Thickness of the NPC slab in angstrom. (Should be the
-                        same as specified inthe npc simulation configuration
+                        Thickness of the NPC slab in angstrom. (Should be the  
+                        same as specified inthe npc simulation configuration   
                         file).
   --statistics-interval-ns STATISTICS_INTERVAL_NS
-                        (Should be the same as specified in the npc simulation
-                        configuration file).
+                        (Should be the same as specified in the npc
+                        simulation configuration file).
   --torus-slab, --no-torus-slab
-                        Specifies if the slab is a torus. should be the same
+                        Specifies if the slab is a torus. should be the same   
                         as in the original simulation.
   --separate-n-c, --no-separate-n-c
-                        Specifies if fg chains are seperated into N and C
+                        Specifies if fg chains are seperated into N and C      
                         parts.
   --min-x-coord MIN_X_COORD
-                        Specifies the first pixel on the X axis on which the
-                        simulation is ran (inclusive). Count starting from 0.
+                        Specifies the first pixel on the X axis on which the   
+                        simulation is ran (inclusive). Count starting from 0.  
   --max-x-coord MAX_X_COORD
-                        Specifies the last pixel on the X axis on which the
-                        simulation is ran (not inclusive). Count starting from
-                        0.
+                        Specifies the last pixel on the X axis on which the    
+                        simulation is ran (not inclusive). Count starting      
+                        from 0.
   --min-y-coord MIN_Y_COORD
-                        Specifies the first pixel on the Y axis on which the
-                        simulation is ran (inclusive). Count starting from 0.
+                        Specifies the first pixel on the Y axis on which the   
+                        simulation is ran (inclusive). Count starting from 0.  
   --max-y-coord MAX_Y_COORD
-                        Specifies the last pixel on the Y axis on which the
-                        simulation is ran (not inclusive). Count starting from
-                        0.
+                        Specifies the last pixel on the Y axis on which the    
+                        simulation is ran (not inclusive). Count starting      
+                        from 0.
   --min-z-coord MIN_Z_COORD
-                        Specifies the first pixel on the Z axis on which the
-                        simulation is ran (inclusive). Count starting from 0.
+                        Specifies the first pixel on the Z axis on which the   
+                        simulation is ran (inclusive). Count starting from 0.  
   --max-z-coord MAX_Z_COORD
-                        Specifies the last pixel on the Z axis on which the
-                        simulation is ran (not inclusive). Count starting from
-                        0.
+                        Specifies the last pixel on the Z axis on which the    
+                        simulation is ran (not inclusive). Count starting      
+                        from 0.
   --vertical-scanning, --no-vertical-scanning
                         If true, scans the lines vertically.
   --z-func {z_test,z_test2}
@@ -129,88 +129,94 @@ args.txt is a file containing the following arguments:
                         If true, calculates the threshold using the
                         median_threshold function in utils.py.
   --calc-threshold-r-px CALC_THRESHOLD_R_PX
-                        The radius around the center to get the median value
-                        from in pixels. (for calculating the threshold if
+                        The radius around the center to get the median value   
+                        from in pixels. (for calculating the threshold if      
                         calc_needle_threshold is true)
   --calc-threshold-frac CALC_THRESHOLD_FRAC
-                        The fraction of the median to take for the threshold.
+                        The fraction of the median to take for the threshold.  
                         (for calculating the threshold if
                         calc_needle_threshold is true)
   --tip-custom-threshold TIP_CUSTOM_THRESHOLD
-                        The density under which the needle ignores. Used for
+                        The density under which the needle ignores. Used for   
                         all z funcs.
   --tip-radius-px TIP_RADIUS_PX
-                        Determines how far around the origin pixel the needle
-                        considers for determining pixel height. (Assuming ball
-                        shape). Should be greater than 1. Only used for z_top
-                        z func.
+                        Determines how far around the origin pixel the needle  
+                        considers for determining pixel height. (Assuming      
+                        ball shape). Should be greater than 1. Only used for   
+                        z_top z func.
+  --fgs-resistance, --no-fgs-resistance
+                        Determines whether nups offer resistance to the        
+                        simulated tip. (default: True)
+  --fgs-verticality-weights, --no-fgs-verticality-weights
+                        Determines whether nups get weighted by verticality    
+                        score. (default: True)
   --floaters-resistance, --no-floaters-resistance
                         Determines whether floaters (NTRs and Passive
-                        Molecules) offer resistance to the simulated tip.
+                        Molecules) offer resistance to the simulated tip.      
   --fgs-sigma-a FGS_SIGMA_A
-                        The sigma value for the normal distribution used to
+                        The sigma value for the normal distribution used to    
                         weigh fg chains.
   --floaters-sigma-a FLOATERS_SIGMA_A
-                        The sigma value for the normal distribution used to
+                        The sigma value for the normal distribution used to    
                         weigh floaters.
   --floater-size-factor FLOATER_SIZE_FACTOR
-                        Determines the factor by which the floater size in
-                        angstrom is multiplied which is then added to the
-                        floater weight. (0.125 to be proportional with 8A fg
+                        Determines the factor by which the floater size in     
+                        angstrom is multiplied which is then added to the      
+                        floater weight. (0.125 to be proportional with 8A fg   
                         beads)
   --floater-distribution-factor FLOATER_DISTRIBUTION_FACTOR
-                        Determines the factor by which the distribution is
-                        multiplied which is then added to the floater weight.
+                        Determines the factor by which the distribution is     
+                        multiplied which is then added to the floater weight.  
   --floater-general-factor FLOATER_GENERAL_FACTOR
-                        Determines the factor by which the final weight of the
-                        floater is multiplied
+                        Determines the factor by which the final weight of     
+                        the floater is multiplied
   --time-per-line-ns TIME_PER_LINE_NS
-                        Determines the amount of time it takes for a needle to
-                        pass a full line. Mutually exclusive with time-per-
-                        pixel-ns.
+                        Determines the amount of time it takes for a needle    
+                        to pass a full line. Mutually exclusive with time-     
+                        per-pixel-ns.
   --time-per-pixel-ns TIME_PER_PIXEL_NS
-                        Determines the amount of time it takes for a needle to
-                        pass a single pixel. Mutually exclusive with time-per-
-                        line-ns.
+                        Determines the amount of time it takes for a needle    
+                        to pass a single pixel. Mutually exclusive with time-  
+                        per-line-ns.
   --time-between-scans-ns TIME_BETWEEN_SCANS_NS
-                        Determines the amount of time it takes for the needle
-                        to return to the starting point to start the next
+                        Determines the amount of time it takes for the needle  
+                        to return to the starting point to start the next      
                         frame.
   --output-non-raster-gif, --no-output-non-raster-gif
-                        Outputs a gif if '--output-non-raster-gif', doesn't if
-                        --no-output-non-raster-gif
+                        Outputs a gif if '--output-non-raster-gif', doesn't    
+                        if --no-output-non-raster-gif
   --output-raster-gif, --no-output-raster-gif
-                        Outputs a gif if '--output-raster-gif', doesn't if
+                        Outputs a gif if '--output-raster-gif', doesn't if     
                         --no-output-raster-gif
   --output-pickle, --no-output-pickle
-                        Outputs a pickle if '--output-pickle', doesn't if
+                        Outputs a pickle if '--output-pickle', doesn't if      
                         --no-output-pickle
   --output-post, --no-output-post
                         Outputs the post analysis visualizations
   --output-path-prefix OUTPUT_PATH_PREFIX
                         Path to output gif file.
   --output-gif-color-map OUTPUT_GIF_COLOR_MAP
-                        Determines the matplotlib color map used for the
-                        output gif. Some useful ones are: 'gist_gray' for
-                        black and white, 'RdBu' for diverging Red-white-blue,
+                        Determines the matplotlib color map used for the       
+                        output gif. Some useful ones are: 'gist_gray' for      
+                        black and white, 'RdBu' for diverging Red-white-blue,  
                         'gist_rainbow' for rainbow.
   --output-resolution-x OUTPUT_RESOLUTION_X
-                        x axis Resolution of output gif in pixels. (Up-scaled
+                        x axis Resolution of output gif in pixels. (Up-scaled  
                         from original height Maps size)
   --output-resolution-y OUTPUT_RESOLUTION_Y
-                        y axis Resolution of output gif in pixels. (Up-scaled
+                        y axis Resolution of output gif in pixels. (Up-scaled  
                         from original height Maps size)
   --output-hdf5, --no-output-hdf5
-                        Outputs a hdf5 file if '--output-hdf5', doesn't if
+                        Outputs a hdf5 file if '--output-hdf5', doesn't if     
                         --no-output-hdf5
   --output-hdf5-path OUTPUT_HDF5_PATH
                         Path to output hdf5 file.
   --progress-bar, --no-progress-bar
                         If true, shows a progress bar.
   --enlarge-floaters, --no-enlarge-floaters
-                        If true, spreads floater density based on the radius
+                        If true, spreads floater density based on the radius   
                         in the type name (in angstrom)
-  --n-cores N_CORES     To be used for parallel operation. If not specified,
+  --n-cores N_CORES     To be used for parallel operation. If not specified,   
                         uses the maximum number of cores.
 ```
 

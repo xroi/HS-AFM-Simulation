@@ -53,7 +53,7 @@ def output_gif(args, maps, filename, z_center, min_z, max_z, timestamp_step=-1, 
                         (im.size[0] / 2 + r), (im.size[1] / 2 + r)],
                        outline=(0, 0, 0, 125), width=5)
         if add_scale is True:
-            scale_text_coords = (im.size[0] - 7 * pixel_size, im.size[1] - 4.5 * pixel_size)
+            scale_text_coords = (im.size[0] - 7 * pixel_size, im.size[1] - 5 * pixel_size)
             scale_coords = [im.size[0] - 7 * pixel_size, im.size[1] - 3 * pixel_size,
                             im.size[0] - 2 * pixel_size, im.size[1] - 2 * pixel_size]
             id.text(scale_text_coords, f"5 nm", fill=(0, 0, 0, 255), font=scale_font)

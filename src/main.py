@@ -13,6 +13,7 @@ import height_funcs
 import raster
 import utils
 from output import output
+from output import output_video
 
 
 def main() -> None:
@@ -28,8 +29,11 @@ def main() -> None:
         output.save_pickle(real_time_maps, rasterized_maps, args, f"{args['output_path_prefix']}.pickle")
         
     if args["output_non_raster_gif"]:
-        out_path = f"{args['output_path_prefix']}_non_raster.gif"
-        output.output_gif(args, np.array(real_time_maps), out_path, center_z, center_z, args["max_z_coord"], add_legend=True, timestamp_step=0.001, add_scale=True)
+        out_path = f"{args['output_path_prefix']}_non_raster.mp4"
+        output_video.output_video(real_time_maps, out_path, 40, 80, res_x=1000, res_y=1000, colormap_name="jet", max_frames=240,
+                          add_legend=True, crop_from_sides_px=0, draw_inner_circle_r=-1, draw_outer_circle_r=-1,
+                          frames_per_second=20, add_scale=True, movement_series_list=None, add_tip_position=False)
+        # output.output_gif(args, np.array(real_time_maps), out_path, center_z, center_z, args["max_z_coord"], add_legend=True, timestamp_step=0.001, add_scale=True)
         
     if args["output_raster_gif"]:
         if len(rasterized_maps) > 0:

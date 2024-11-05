@@ -20,3 +20,4 @@ src/temp_main.py
 src/temp_main_school.py
 .vscode
 src/output/__pycache__/
+temp*

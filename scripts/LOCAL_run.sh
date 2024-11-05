@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #SBATCH --mem=4g
-#SBATCH --time=7-0
+#SBATCH --time=2-0
 #SBATCH --mail-type=ALL
 
 if ($#argv != 3) then
@@ -8,7 +8,7 @@ if ($#argv != 3) then
     exit 0
 endif
 
-# Make sure you don't supply the --input-path and ----output-path-prefix arguments in the config file.
+# Make sure you don't supply the --input-path and --output-path-prefix arguments in the config file.
 
 source /cs/labs/ravehb/roi.eliasian/NpcTransportExperiment/HS-AFM-Simulation/venv_new/bin/activate.csh
 

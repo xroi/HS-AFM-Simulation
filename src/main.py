@@ -92,24 +92,63 @@ def calculate_normal_pdf(min_z: int, max_z: int, mu: float, sigma: float) -> dic
     return vals
 
 
+def calculate_weight_pdfs(args, centers):
+    """
+    Return the values of the 3 probability density functions used for weighing molecules.
+
+    :param args: User arguments.
+    :param args: Centers of bounding box.
+    :return: Tupe of arrays with the values of (f_p1, f_p2, f_p3) along discrete points.
+    """
+    size_x = args["max_x_coord"] - args["min_x_coord"]
+    size_y = args["max_y_coord"] - args["min_y_coord"]
+    
+    # ============
+    # === f_p1 ===
+    # ============
+    min_z1  = 0
+    max_z1  = args["max_z_coord"] - args["min_z_coord"] + 1
+    mu1     = 0
+    sig1    = args["fgs_sigma_a"] / args["voxel_size_a"]
+    fg_pdfs = calculate_normal_pdf(min_z1, max_z1, mu1, sig1)
+    
+    # ============
+    # === f_p2 ===
+    # ============
+    min_z2             = 0
+    max_z2             = centers[2] * 2
+    mu2                = centers[2]
+    half_slab_width_px = (args["slab_thickness_a"] / args["voxel_size_a"])/2
+    sig2               = (sig1 + half_slab_width_px) / 2
+    # floater_z_pdfs   = calculate_normal_pdf(0, centers[2] * 2, centers[2], args["floaters_sigma_a"] / args["voxel_size_a"])
+    floater_z_pdfs     = calculate_normal_pdf(min_z2, max_z2, mu2, sig2)
+    
+    # ============
+    # === f_p3 ===
+    # ============
+    min_z3              = 0
+    max_z3              = int(np.sqrt((size_x / 2) ** 2 + (size_y / 2) ** 2) + 1)
+    mu3                 = 0
+    sig3                = ((args["tunnel_radius_a"] - 1 * (args["slab_thickness_a"] / 4)) / args["voxel_size_a"])
+    floater_radial_pdfs = calculate_normal_pdf(min_z3, max_z3, mu3, sig3)
+    
+    pdfs = (fg_pdfs, floater_z_pdfs, floater_radial_pdfs)
+    return pdfs
+    
+
 def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
     """
     Sequentially loads each hdf5 file, and calculates the height map for it.
     :param args: User arguments.
     :return: List of all height maps, for each point of time.
     """
-    size_x              = args["max_x_coord"] - args["min_x_coord"]
-    size_y              = args["max_y_coord"] - args["min_y_coord"]
-    tip_threshold       = args["tip_custom_threshold"]  # todo not using get_needle_threshold
-    original_shape      = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}", args["read_from_gzip"])
-    centers             = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
-    fg_pdfs             = calculate_normal_pdf(0, args["max_z_coord"] - args["min_z_coord"] + 1, 0, args["fgs_sigma_a"] / args["voxel_size_a"])
-    floater_z_pdfs      = calculate_normal_pdf(0, centers[2] * 2, centers[2], args["floaters_sigma_a"] / args["voxel_size_a"])
-    floater_radial_pdfs = calculate_normal_pdf(0, int(np.sqrt((size_x / 2) ** 2 + (size_y / 2) ** 2) + 1), 0, ((args["tunnel_radius_a"] - 1 * (args["slab_thickness_a"] / 4)) / args["voxel_size_a"]))
-    pdfs                = (fg_pdfs, floater_z_pdfs, floater_radial_pdfs)
-    stages_total        = int(args["simulation_end_time_ns"] / args["interval_ns"] - args["simulation_start_time_ns"] / args["interval_ns"])
-    get_single          = partial(get_single_real_time_map, args=args, centers=centers, pdfs=pdfs, tip_threshold=tip_threshold)
-    real_time_maps      = get_real_time_maps_helper_parallel(args, get_single, stages_total)
+    tip_threshold  = args["tip_custom_threshold"]  # todo not using get_needle_threshold
+    original_shape = get_hdf5_size(f"{args['input_path']}/{args['simulation_start_time_ns']}{args['input_suffix']}", args["read_from_gzip"])
+    centers        = (int(original_shape[0] / 2), int(original_shape[1] / 2), int(original_shape[2] / 2))
+    pdfs           = calculate_weight_pdfs(args, centers)
+    stages_total   = int(args["simulation_end_time_ns"] / args["interval_ns"] - args["simulation_start_time_ns"] / args["interval_ns"])
+    get_single     = partial(get_single_real_time_map, args=args, centers=centers, pdfs=pdfs, tip_threshold=tip_threshold)
+    real_time_maps = get_real_time_maps_helper_parallel(args, get_single, stages_total)
     return real_time_maps
 
 

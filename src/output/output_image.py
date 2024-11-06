@@ -3,11 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import moviepy.editor as mp
 import cv2
+import os
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 def output_image(height_map, filename, min_z, max_z, res_x, res_y, colormap_name, add_legend=False,
-                 crop_from_sides_px=0, draw_inner_circle_r=-1, draw_outer_circle_r=-1, add_scale=False):
+                 crop_from_sides_px=0, draw_inner_circle_r=-1, draw_outer_circle_r=-1, add_scale=False, save=True):
     """z_center is the real center"""
     # Generate legend image
     if add_legend:
@@ -16,7 +17,10 @@ def output_image(height_map, filename, min_z, max_z, res_x, res_y, colormap_name
     else:
         dims = (res_x, res_y)
     if add_scale is True:
-        scale_font = ImageFont.truetype('arial.ttf', 30)
+        if os.name == "nt": # windows
+            scale_font = ImageFont.truetype('arial.ttf', 30)
+        else:
+            scale_font = ImageFont.truetype('LiberationSans-Regular.ttf', 30)
     # Load the colormap
     cm = plt.get_cmap(colormap_name)
 
@@ -35,7 +39,9 @@ def output_image(height_map, filename, min_z, max_z, res_x, res_y, colormap_name
         add_scale_to_image(im, image_draw, pixel_size, scale_font)
     if add_legend:
         im = add_legend_to_image(im, legend_im)
-    im.save(filename)
+    if save:
+        im.save(filename)
+    return im
 
 
 def draw_timestamp(image_draw, timestamp_font, timestamp_step, i):

@@ -102,7 +102,7 @@ def _get_fg_and_floater_types(ref_output):
 
 
 def my_main():
-    fg_color = [255.0 / 255, 204.0 / 255, 102.0 / 255]
+    fg_color = [32.0 / 255, 128.0 / 255, 18.0 / 255]
     kap_color = [220.0 / 255, 0, 64.0 / 255]
     inert_color = [70.0 / 255, 80.0 / 255, 220.0 / 255]
     IMP.add_string_flag("input_rmf", "", "The input RMF file.")
@@ -127,8 +127,8 @@ def my_main():
     type2chains = {}
     #    print("fg_types", fg_types)
     for i, fg_type in enumerate(fg_types):
-        type2chains[fg_type] = _add_nodes(in_fh.get_root_node(), tf, [fg_type])
-    #        print(type2chains[fg_type])
+        type2chains[fg_type] = _add_nodes(in_fh.get_root_node(), tf, [f"{fg_type}_C", f"{fg_type}_N"])
+        print(type2chains[fg_type])
     skip_n_frames = IMP.get_int_flag("skip_n_frames")
     first_frame = IMP.get_int_flag("first_frame")
     if (skip_n_frames > 0):

@@ -10,6 +10,7 @@ npctransport configs
 *.hdf5
 *.mp4
 *.out
+*.pdb
 density_test
 ChannelsFIg
 src/__pycache__

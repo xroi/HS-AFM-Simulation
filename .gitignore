@@ -6,6 +6,7 @@ npctransport configs
 *.gif
 *.rmf
 *.pickle
+!data/scaffold_voxel_map.pickle
 *.gz
 *.hdf5
 *.mp4

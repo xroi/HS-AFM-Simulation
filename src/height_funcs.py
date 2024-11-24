@@ -1,8 +1,13 @@
 from itertools import product
 
 import numpy as np
+import pickle
+import scipy.stats
+
 
 import utils
+
+
 
 
 def get_fg_weights_by_distance(counts_map: np.ndarray, fgs_pdf: dict[int, float]) -> np.ndarray:
@@ -40,19 +45,30 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
     in the bounding box system of coordinates (todo: might be changed).
     """
     height_map = np.ones(shape=fgs_counts_map.shape[:2]) * args["min_z_coord"]
+    
     # Calculate the weights for each fg. this is done once per time step.
     if args["fgs_verticality_weights"]:
         fg_weights = get_fg_weights_by_distance(fgs_counts_map, pdfs[0])
     else: 
-        fg_weights = np.ones(shape=fgs_counts_map.shape[3]) * 0.5
-    # Normalize count maps
+        fg_weights = np.ones(shape=fgs_counts_map.shape[3]) # todo multiply by something to make up for the loss with verticality score 
+        
+    # Normalize count maps:
     norm_factor = args["interval_ns"] / args["statistics_interval_ns"]
     fgs_counts_map = fgs_counts_map / norm_factor
+    
+    # Load scaffold data if needed:
+    scaffold = np.zeros(shape=fgs_counts_map.shape)
+    if args["scaffold_voxel_map"] is not None:
+        with open (args["scaffold_voxel_map"], "rb") as f:
+            scaffold = pickle.load(f)
+            # apply to account for tip radius
+            scaffold = scipy.ndimage.gaussian_filter(scaffold, sigma=args["tip_radius_px"], radius=args["tip_radius_px"], axes=(0, 1))
+    
+    # Begin afm loop:
     afm_centers = (fgs_counts_map.shape[0] / 2, fgs_counts_map.shape[1] / 2)
     for x, y in product(range(fgs_counts_map.shape[0]), range(fgs_counts_map.shape[1])):
         dist_from_center = int(np.sqrt((afm_centers[0] - x) ** 2 + (afm_centers[1] - y) ** 2))
-        slab_top_z = get_slab_top_z(x + args["min_x_coord"], y + args["min_y_coord"], centers, args) - args[
-            "min_z_coord"]
+        slab_top_z = get_slab_top_z(x + args["min_x_coord"], y + args["min_y_coord"], centers, args) - args["min_z_coord"]
         counts_sum = 0.0
         for z in range(fgs_counts_map.shape[2] - 1, -1, -1):
             for fg_i in np.nonzero(fgs_counts_map[x, y, z, :])[0]:
@@ -63,7 +79,12 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
                                  floater_sizes[floater_i] * \
                                  args["floater_general_factor"]
                 counts_sum += floaters_counts_map[x, y, z, floater_i] * floater_weight
-            if (counts_sum > tip_threshold) or (z < slab_top_z):
+                
+            # Loop break conditions (or):
+            # 1. Threshold reached.
+            # 2. Scaffold reached.
+            # 3. Slab (Nuclear Envelope) top reached.
+            if (counts_sum > tip_threshold) or (scaffold[x,y,z + args["min_z_coord"]] != 0) or (z < slab_top_z):
                 height_map[x, y] = z + args["min_z_coord"]
                 break
     return height_map
@@ -89,11 +110,11 @@ def get_slab_top_z(x: int, y: int, centers: tuple[int, int, int], args: dict[str
                                            accounted_tunnel_radius_px,
                                            (args["slab_thickness_a"] / args["voxel_size_a"]) / 2, inside=centers[2])
     else:
-        slab_top_z = centers[2] if utils.is_in_circle(x, y,
+        slab_top_z = centers[2] if utils.is_in_circle(x,
+                                                      y,
                                                       accounted_tunnel_radius_px,
                                                       centers[0],
-                                                      centers[1]) else centers[2] + (
-                (args["slab_thickness_a"] / 2) / args["voxel_size_a"])
+                                                      centers[1]) else centers[2] + ((args["slab_thickness_a"] / 2) / args["voxel_size_a"])
     return slab_top_z
 
 

@@ -138,7 +138,7 @@ def calculate_weight_pdfs(args, centers):
 
 def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
     """
-    Sequentially loads each hdf5 file, and calculates the height map for it.
+    Calculates all non rasterized images.
     :param args: User arguments.
     :return: List of all height maps, for each point of time.
     """
@@ -155,7 +155,7 @@ def get_real_time_maps(args: dict[str, any]) -> list[np.ndarray]:
 def get_single_real_time_map(time: int, args: dict[str, any], centers: tuple[int, int, int],
                              pdfs: tuple[dict[int, float], dict[int, float], dict[int, float]],
                              tip_threshold: float) -> np.array:
-    """loads and calculates the height map for a single file/point of time. """
+    """loads and calculates the non-rasterized height map for a single file/point of time."""
     # Load the file
     fgs_counts_map, floaters_counts_map, floater_sizes = load_individual_counts_maps(time, args)
     

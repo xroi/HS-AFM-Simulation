@@ -8,12 +8,11 @@ def validate_args(args) -> None:
         raise Exception("Integrated npc simulation not yet implemented.")
     if args["calc_needle_threshold"] is not None:
         if args["calc_threshold_r_px"] is None or args["calc_threshold_frac"] is None:
-            raise Exception("calc-threshold is true. therefore please supply the following arguments: "
-                            "calc_threshold_r_px, calc_threshold_frac")
+            raise Exception("calc-threshold is true. therefore please supply the following arguments: calc_threshold_r_px, calc_threshold_frac")
     if args["calc_needle_threshold"] is None and args["needle_custom_threshold"] in None:
-        raise Exception(
-            "Needle threshold is needed, therefore please supply either the needle-custom-threshold or enable "
-            "calc-needle-threshold.")
+        raise Exception("Needle threshold is needed, therefore please supply either the needle-custom-threshold or enable calc-needle-threshold.")
+    if args["scaffold_voxel_map"] is not None and ((args["max_x_coord"] - args["min_x_coord"] != 80) or (args["max_y_coord"] - args["min_y_coord"] != 80)):
+          raise Exception("Scaffold data should only be used for 80x80 AFM imaging.")
 
 
 def parse_arguments() -> dict[str, any]:
@@ -86,6 +85,10 @@ def parse_arguments() -> dict[str, any]:
                         action=argparse.BooleanOptionalAction,
                         help="Specifies if fg chains are seperated into N and C parts.",
                         required=True)
+    parser.add_argument("--scaffold-voxel-map",
+                        type=str,
+                        help="If given, adds resistance from the npc scaffold. The shape is determined by a voxel map. Should only be used for simulations of size 80x80 nm^2.",
+                        default=None)
     # ============== #
     # AFM PARAMETERS #
     # ============== #

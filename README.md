@@ -9,8 +9,7 @@ A computational model of High-Speed Atomic Force Microscopy (HS-AFM), based on s
 
 ## Demo
 
-<video src="https://github.com/xroi/HS-AFM-Simulation/blob/main/assets/non_raster.mp4" controls="controls" style="max-width: 730px;">
-</video>
+https://github.com/user-attachments/assets/9ce97b72-0078-4fce-85fd-6a67d7bcb794
 
 ## Requirements
 

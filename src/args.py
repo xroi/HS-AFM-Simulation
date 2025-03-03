@@ -179,7 +179,7 @@ def parse_arguments() -> dict[str, any]:
     parser.add_argument("--floaters-sigma-a",
                         type=float,
                         help="The sigma value for the normal distribution used to weigh floaters.",
-                        required=True)
+                        required=True) # todo currently unsued (calculated from other inputs)
     parser.add_argument("--floater-size-factor",
                         type=float,
                         help="Determines the factor by which the floater size in angstrom is multiplied which is then "

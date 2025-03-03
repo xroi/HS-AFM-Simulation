@@ -119,7 +119,7 @@ def calculate_weight_pdfs(args, centers):
     max_z2             = centers[2] * 2
     mu2                = centers[2]
     half_slab_width_px = (args["slab_thickness_a"] / args["voxel_size_a"])/2
-    sig2               = (sig1 + half_slab_width_px) / 2
+    sig2               = (sig1 + half_slab_width_px) # / 2
     # floater_z_pdfs   = calculate_normal_pdf(0, centers[2] * 2, centers[2], args["floaters_sigma_a"] / args["voxel_size_a"])
     floater_z_pdfs     = calculate_normal_pdf(min_z2, max_z2, mu2, sig2)
     

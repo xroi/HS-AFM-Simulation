@@ -10,6 +10,7 @@ npctransport configs
 *.gz
 *.hdf5
 *.mp4
+!assets/non_raster.mp4
 *.out
 *.pdb
 density_test

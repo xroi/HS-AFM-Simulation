@@ -4,10 +4,7 @@ import numpy as np
 import pickle
 import scipy.stats
 
-
 import utils
-
-
 
 
 def get_fg_weights_by_distance(counts_map: np.ndarray, fgs_pdf: dict[int, float]) -> np.ndarray:
@@ -50,7 +47,7 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
     if args["fgs_verticality_weights"]:
         fg_weights = get_fg_weights_by_distance(fgs_counts_map, pdfs[0])
     else: 
-        fg_weights = np.ones(shape=fgs_counts_map.shape[3]) # todo multiply by something to make up for the loss with verticality score 
+        fg_weights = np.ones(shape=fgs_counts_map.shape[3]) # multiply by something to make up for the loss with verticality score? no need, recalculate proportionality constant (K)
         
     # Normalize count maps:
     norm_factor = args["interval_ns"] / args["statistics_interval_ns"]
@@ -122,57 +119,57 @@ def get_slab_top_z(x: int, y: int, centers: tuple[int, int, int], args: dict[str
 # Unused: #
 ###########
 
-def get_weight(dist_from_cent, max_z):
-    return ((max_z / 2) - dist_from_cent) / (max_z / 2)
+# def get_weight(dist_from_cent, max_z):
+#     return ((max_z / 2) - dist_from_cent) / (max_z / 2)
 
 
-# def z_top(x, y, density_map, needle_threshold, orig_shape, args):
-#     for z in range(density_map.shape[2] - args["needle_radius_px"], -1, -1):
-#         if utils.get_ball_mean(density_map, x, y, z, args["needle_radius_px"]) > args["needle_threshold"]:
-#             return z  # / combined_density_map.shape[2]
+# # def z_top(x, y, density_map, needle_threshold, orig_shape, args):
+# #     for z in range(density_map.shape[2] - args["needle_radius_px"], -1, -1):
+# #         if utils.get_ball_mean(density_map, x, y, z, args["needle_radius_px"]) > args["needle_threshold"]:
+# #             return z  # / combined_density_map.shape[2]
+# #     return 0
+# #
+# #
+# # def z_sum(x, y, density_map, needle_threshold, orig_shape, args):
+# #     value = np.sum(density_map[x, y, :])
+# #     if value > needle_threshold:
+# #         return value
+# #     return 0
+# #
+# #
+# # def z_fraction(x, y, density_map, needle_threshold, orig_shape, args):
+# #     fraction_threshold = np.sum(density_map[x, y, :]) * args["needle_fraction"]
+# #     cur = 0
+# #     for z in range(density_map.shape[2]):
+# #         cur += density_map[x, y, z]
+# #         if cur > needle_threshold and cur > fraction_threshold:
+# #             return z
+# #     return 0
+
+
+# def z_test(counts_map, needle_threshold, centers, args):
+#     """x, y, slab_top_z, z_center, z_min, should be in px"""
+#     height_map = np.zeros(shape=counts_map.shape[:2])
+#     summed_counts_map = np.sum(counts_map, axis=3)
+#     for x, y in product(range(counts_map.shape[0]), range(counts_map.shape[1])):
+#         slab_top_z = get_slab_top_z(x, y, centers, args)
+#         counts_sum = 0
+#         for z in range(summed_counts_map.shape[2] - 1, -1, -1):
+#             counts_sum += (summed_counts_map[x, y, z] * get_weight(np.abs(centers[2] - (z + args["min_z_coord"])),
+#                                                                    summed_counts_map.shape[2]))
+#             if (counts_sum > needle_threshold) or z < slab_top_z:
+#                 height_map[x, y] = z
+#                 break
 #     return 0
-#
-#
-# def z_sum(x, y, density_map, needle_threshold, orig_shape, args):
-#     value = np.sum(density_map[x, y, :])
-#     if value > needle_threshold:
-#         return value
-#     return 0
-#
-#
-# def z_fraction(x, y, density_map, needle_threshold, orig_shape, args):
-#     fraction_threshold = np.sum(density_map[x, y, :]) * args["needle_fraction"]
-#     cur = 0
-#     for z in range(density_map.shape[2]):
-#         cur += density_map[x, y, z]
-#         if cur > needle_threshold and cur > fraction_threshold:
-#             return z
-#     return 0
 
 
-def z_test(counts_map, needle_threshold, centers, args):
-    """x, y, slab_top_z, z_center, z_min, should be in px"""
-    height_map = np.zeros(shape=counts_map.shape[:2])
-    summed_counts_map = np.sum(counts_map, axis=3)
-    for x, y in product(range(counts_map.shape[0]), range(counts_map.shape[1])):
-        slab_top_z = get_slab_top_z(x, y, centers, args)
-        counts_sum = 0
-        for z in range(summed_counts_map.shape[2] - 1, -1, -1):
-            counts_sum += (summed_counts_map[x, y, z] * get_weight(np.abs(centers[2] - (z + args["min_z_coord"])),
-                                                                   summed_counts_map.shape[2]))
-            if (counts_sum > needle_threshold) or z < slab_top_z:
-                height_map[x, y] = z
-                break
-    return 0
-
-
-def get_fg_weights_by_vector(counts_map):
-    fg_weights = []
-    # PCA
-    for fg_i in range(counts_map.shape[3]):
-        coords = np.array(np.where(counts_map[:, :, :, fg_i] != 0.0)).T
-        coords_mean = coords.mean(axis=0)
-        uu, dd, vv = np.linalg.svd(coords - coords_mean)
-        fit_vec = vv[0] / np.linalg.norm(vv[0])
-        fg_weights.append(1 / np.abs(fit_vec[2]))
-    return fg_weights[0]
+# def get_fg_weights_by_vector(counts_map):
+#     fg_weights = []
+#     # PCA
+#     for fg_i in range(counts_map.shape[3]):
+#         coords = np.array(np.where(counts_map[:, :, :, fg_i] != 0.0)).T
+#         coords_mean = coords.mean(axis=0)
+#         uu, dd, vv = np.linalg.svd(coords - coords_mean)
+#         fit_vec = vv[0] / np.linalg.norm(vv[0])
+#         fg_weights.append(1 / np.abs(fit_vec[2]))
+#     return fg_weights[0]

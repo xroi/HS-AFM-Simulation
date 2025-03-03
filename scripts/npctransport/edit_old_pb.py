@@ -3,7 +3,7 @@ import sys
 import math
 
 # fetch params
-# Usage: <cmd> <outfile> <newoutfle> <new_time_ns> <new_dump_ns>
+# Usage: <cmd> <outfile> <newoutfle>
 outfile = sys.argv[1]
 newoutfile = sys.argv[2]
 with open(outfile, "rb") as f:

@@ -4,6 +4,7 @@ venv
 npctransport configs
 *.png
 *.gif
+*.svg
 *.rmf
 *.pickle
 !data/scaffold_voxel_map.pickle

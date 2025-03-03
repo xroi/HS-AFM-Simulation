@@ -25,9 +25,8 @@ Tested on the following systems:
 * Python 3.10 or higher
 * Packages listed in [requirements.txt](requirements.txt)
 
----
 
-### Installation
+## Installation
 
 1. Clone the repository:
 

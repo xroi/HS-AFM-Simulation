@@ -54,7 +54,7 @@ def calculate_height_map(fgs_counts_map: np.ndarray, floaters_counts_map: np.nda
     fgs_counts_map = fgs_counts_map / norm_factor
     
     # Load scaffold data if needed:
-    scaffold = np.zeros(shape=fgs_counts_map.shape)
+    scaffold = np.zeros(shape=fgs_counts_map.shape[:3])
     if args["scaffold_voxel_map"] is not None:
         with open (args["scaffold_voxel_map"], "rb") as f:
             scaffold = pickle.load(f)

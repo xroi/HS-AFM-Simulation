@@ -48,7 +48,7 @@ def calculate_taus(acorrs: np.ndarray):
     """Given a 3d array where z vectors are auto correlations values in lags 0,...,acorrs.shape[2] fits the points to
     an exponential decay function and return an array of size (acorrs.shape[0],acorrs.shape[1]), with the fitted tau
     values."""
-
+    model_func = exponent_model_func
     xdata = [i for i in range(acorrs.shape[2])]
     taus = np.zeros(shape=(acorrs.shape[0], acorrs.shape[1]))
     for x, y in product(range(taus.shape[0]), range(taus.shape[1])):
